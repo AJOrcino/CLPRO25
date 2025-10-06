@@ -1,0 +1,998 @@
+import axios from 'axios';
+
+// Base URL for the API - using backend URL for API calls
+const API_BASE_URL = 'http://localhost:8000';
+
+// Create axios instance with default config
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor to handle auth errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear token and redirect to login
+      localStorage.removeItem('authToken');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name?: string;
+  };
+}
+
+export interface User {
+  id: number;
+  username: string;
+  role: string;
+}
+
+export interface UserCreate {
+  username: string;
+  password: string;
+  role: 'teacher' | 'student';
+}
+
+export interface UserUpdate {
+  username?: string;
+  password?: string;
+  role?: 'teacher' | 'student';
+}
+
+export interface Class {
+  id: number;
+  name: string;
+  code: string;
+  teacher_id?: number;
+}
+
+export interface ClassCreate {
+  name: string;
+  code: string;
+  teacher_id?: number;
+}
+
+export interface ClassUpdate {
+  name?: string;
+  code?: string;
+  teacher_id?: number;
+}
+
+// FastAPI OAuth2 login function - COMPLETELY REWRITTEN for correct form data format
+export const loginUser = async (username: string, password: string): Promise<string> => {
+  try {
+    // Create URLSearchParams object for form data
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('password', password);
+    
+    // Make POST request with explicit form data headers and body
+    const response = await axios.post(`${API_BASE_URL}/token`, formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+    });
+    
+    // Return the access token from the response
+    return response.data.access_token;
+  } catch (error: any) {
+    console.error('Login failed:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
+    throw error;
+  }
+};
+
+// Get all users from the protected backend endpoint
+export const getAllUsers = async (): Promise<User[]> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.get('/users/');
+    
+    // Return the data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch users:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Handle specific error cases
+      if (error.response.status === 401) {
+        throw new Error('Authentication failed. Please log in again.');
+      } else if (error.response.status === 403) {
+        throw new Error('Access denied. Admin privileges required.');
+      }
+    }
+    throw error;
+  }
+};
+
+// Get all teachers from the protected backend endpoint
+export const getTeachers = async (): Promise<User[]> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.get('/users/');
+    
+    // Filter the response to return only users with role 'teacher'
+    const allUsers = response.data;
+    const teachers = allUsers.filter((user: User) => user.role === 'teacher');
+    
+    // Return only teachers
+    return teachers;
+  } catch (error: any) {
+    console.error('Failed to fetch teachers:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Handle specific error cases
+      if (error.response.status === 401) {
+        throw new Error('Authentication failed. Please log in again.');
+      } else if (error.response.status === 403) {
+        throw new Error('Access denied. Admin privileges required.');
+      }
+    }
+    throw error;
+  }
+};
+
+// Create user by admin from the protected backend endpoint
+export const createUserByAdmin = async (userData: UserCreate): Promise<User> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.post('/users/create', userData);
+    
+    // Return the created user data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to create user:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'User creation failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid user data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('User creation failed. Please try again.');
+  }
+};
+
+// Update user by admin from the protected backend endpoint
+export const updateUserByAdmin = async (userId: number, updateData: UserUpdate): Promise<User> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.patch(`/users/${userId}`, updateData);
+    
+    // Return the updated user data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update user:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'User update failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'User not found.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid user data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('User update failed. Please try again.');
+  }
+};
+
+// Delete user by admin from the protected backend endpoint
+export const deleteUserByAdmin = async (userId: number): Promise<{ message: string }> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.delete(`/users/${userId}`);
+    
+    // Return the success message
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to delete user:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'User deletion failed. Please try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'User not found.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('User deletion failed. Please try again.');
+  }
+};
+
+// Get all classes from the protected backend endpoint
+export const getAllClasses = async (): Promise<Class[]> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.get('/classes/');
+    
+    // Return the data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to fetch classes:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Handle specific error cases
+      if (error.response.status === 401) {
+        throw new Error('Authentication failed. Please log in again.');
+      } else if (error.response.status === 403) {
+        throw new Error('Access denied. Admin privileges required.');
+      }
+    }
+    throw error;
+  }
+};
+
+// Create class by admin from the protected backend endpoint
+export const createClassByAdmin = async (classData: ClassCreate): Promise<Class> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.post('/classes/', classData);
+    
+    // Return the created class data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to create class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class creation failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid class data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class creation failed. Please try again.');
+  }
+};
+
+// Create class function for general use
+export const createClass = async (classData: ClassCreate): Promise<Class> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers and Content-Type
+    const response = await apiClient.post('/classes/', classData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    
+    // Return the created class data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to create class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class creation failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid class data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class creation failed. Please try again.');
+  }
+};
+
+// Update class function for general use
+export const updateClass = async (classId: number, updateData: ClassUpdate): Promise<Class> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers and Content-Type
+    const response = await apiClient.patch(`/classes/${classId}`, updateData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    
+    // Return the updated class data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class update failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'Class not found.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid class data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class update failed. Please try again.');
+  }
+};
+
+// Delete class function for general use
+export const deleteClass = async (classId: number): Promise<{ message: string }> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.delete(`/classes/${classId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    
+    // Return the success message
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to delete class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class deletion failed. Please try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'Class not found.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class deletion failed. Please try again.');
+  }
+};
+
+// Export all users data (Admin only)
+export const exportAllUsers = async (): Promise<User[]> => {
+  try {
+    // Explicitly define the backend URL
+    const BACKEND_URL = 'http://localhost:8000';
+    const endpoint = `${BACKEND_URL}/exports/users/all`;
+    
+    console.log('exportAllUsers: Starting API call to:', endpoint);
+    
+    // Get the auth token
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+    
+    // Make explicit request with full URL and auth header
+    const response = await axios.get(endpoint, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('exportAllUsers: API response received:', response.status, response.data);
+    
+    // Return the users data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to export users:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Failed to export users data. Please try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Failed to export users data. Please try again.');
+  }
+};
+
+// Export all classes data (Admin only)
+export const exportAllClasses = async (): Promise<Class[]> => {
+  try {
+    // Explicitly define the backend URL
+    const BACKEND_URL = 'http://localhost:8000';
+    const endpoint = `${BACKEND_URL}/exports/classes/all`;
+    
+    console.log('exportAllClasses: Starting API call to:', endpoint);
+    console.log('exportAllClasses: Auth token:', localStorage.getItem('authToken') ? 'Present' : 'Missing');
+    
+    // Get the auth token
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      throw new Error('No authentication token found. Please log in again.');
+    }
+    
+    // Make explicit request with full URL and auth header
+    const response = await axios.get(endpoint, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('exportAllClasses: API response received:', response.status, response.data);
+    
+    // Return the classes data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to export classes:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Failed to export classes data. Please try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      console.error('Network request details:', error.request);
+      console.error('Request URL:', error.config?.url);
+      console.error('Request method:', error.config?.method);
+      console.error('Request headers:', error.config?.headers);
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Failed to export classes data. Please try again.');
+  }
+};
+
+// Update class by admin from the protected backend endpoint
+export const updateClassByAdmin = async (classId: number, updateData: ClassUpdate): Promise<Class> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.patch(`/classes/${classId}`, updateData);
+    
+    // Return the updated class data
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to update class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class update failed. Please check the input and try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'Class not found.';
+      } else if (error.response.status === 400) {
+        errorMessage = errorMessage || 'Invalid class data provided.';
+      } else if (error.response.status === 422) {
+        errorMessage = errorMessage || 'Invalid request data. Please check all fields.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class update failed. Please try again.');
+  }
+};
+
+// Delete class by admin from the protected backend endpoint
+export const deleteClassByAdmin = async (classId: number): Promise<{ message: string }> => {
+  try {
+    // Use the configured apiClient which automatically includes auth headers
+    const response = await apiClient.delete(`/classes/${classId}`);
+    
+    // Return the success message
+    return response.data;
+  } catch (error: any) {
+    console.error('Failed to delete class:', error);
+    
+    // Handle Axios error response
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      
+      // Extract error message from response
+      let errorMessage = 'Class deletion failed. Please try again.';
+      
+      if (error.response.data?.detail) {
+        // Handle different types of detail responses
+        if (typeof error.response.data.detail === 'string') {
+          errorMessage = error.response.data.detail;
+        } else if (Array.isArray(error.response.data.detail)) {
+          // Handle validation error arrays
+          errorMessage = error.response.data.detail.map((err: any) => 
+            `${err.loc?.join('.') || 'Field'}: ${err.msg || err.type || 'Invalid value'}`
+          ).join(', ');
+        } else if (typeof error.response.data.detail === 'object') {
+          // Handle object details
+          errorMessage = JSON.stringify(error.response.data.detail);
+        }
+      }
+      
+      // Handle specific status codes
+      if (error.response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (error.response.status === 403) {
+        errorMessage = 'Access denied. Admin privileges required.';
+      } else if (error.response.status === 404) {
+        errorMessage = 'Class not found.';
+      } else if (error.response.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    // Handle network or other errors
+    if (error.request) {
+      throw new Error('Network error. Please check your connection and try again.');
+    }
+    
+    // Handle other errors
+    throw new Error('Class deletion failed. Please try again.');
+  }
+};
+
+export const authService = {
+  // Login user - Updated to use the correct endpoint
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    try {
+      // Use the same method as loginUser function
+      const formData = new URLSearchParams();
+      formData.append('username', credentials.email);
+      formData.append('password', credentials.password);
+      
+      const response = await axios.post(`${API_BASE_URL}/token`, formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+      });
+      
+      const token = response.data.access_token;
+      
+      // Store token in localStorage
+      localStorage.setItem('authToken', token);
+      
+      // Return simplified response
+      return { token, user: { id: '1', email: credentials.email } };
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  },
+
+  // Register user
+  async register(userData: {
+    email: string;
+    password: string;
+    name?: string;
+  }): Promise<AuthResponse> {
+    try {
+      const response = await apiClient.post('/auth/register', userData);
+      const { token, user } = response.data;
+      
+      // Store token in localStorage
+      localStorage.setItem('authToken', token);
+      
+      return { token, user };
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  },
+
+  // Logout user
+  logout(): void {
+    localStorage.removeItem('authToken');
+    window.location.href = '/login';
+  },
+
+  // Get current user
+  async getCurrentUser(): Promise<AuthResponse['user']> {
+    try {
+      const response = await apiClient.get('/auth/me');
+      return response.data.user;
+    } catch (error) {
+      console.error('Failed to get current user:', error);
+      throw error;
+    }
+  },
+
+  // Check if user is authenticated
+  isAuthenticated(): boolean {
+    return !!localStorage.getItem('authToken');
+  },
+
+  // Get stored token
+  getToken(): string | null {
+    return localStorage.getItem('authToken');
+  },
+
+  // Get all users (Admin only)
+  async getAllUsers(): Promise<User[]> {
+    return getAllUsers();
+  },
+
+  // Get all classes (Admin only)
+  async getAllClasses(): Promise<Class[]> {
+    return getAllClasses();
+  },
+
+  // Create class (Admin only)
+  async createClass(classData: ClassCreate): Promise<Class> {
+    return createClassByAdmin(classData);
+  },
+
+  // Update class (Admin only)
+  async updateClass(classId: number, updateData: ClassUpdate): Promise<Class> {
+    return updateClassByAdmin(classId, updateData);
+  },
+
+  // Delete class (Admin only)
+  async deleteClass(classId: number): Promise<{ message: string }> {
+    return deleteClassByAdmin(classId);
+  }
+};
+
+export default authService;
