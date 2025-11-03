@@ -140,33 +140,6 @@ const ClassesPage: React.FC = () => {
     fetchTeachers();
   }, [user]); // Depend on user context
 
-  // Force center alignment on mount and resize
-  useEffect(() => {
-    const handleResize = () => {
-      // Simple scroll reset without recursive calls
-      window.scrollTo(0, 0);
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    };
-
-    const handleLoad = () => {
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      }, 50);
-    };
-
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('load', handleLoad);
-    handleLoad();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('load', handleLoad);
-    };
-  }, []);
-
   // Filter classes based on search term
   const filteredClasses = classes.filter(classItem =>
     classItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -425,7 +398,7 @@ const ClassesPage: React.FC = () => {
   };
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-y-auto relative flex">
+    <div className="h-screen w-full bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden relative flex">
       {/* Global Success Message (Toast Notification) */}
       {globalSuccessMessage && (
         <div className="fixed top-4 right-4 z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-in">
@@ -456,6 +429,8 @@ const ClassesPage: React.FC = () => {
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 transition-colors"
+            title="Toggle menu"
+            aria-label="Toggle navigation menu"
           >
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -468,9 +443,9 @@ const ClassesPage: React.FC = () => {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content Area */}
-      <div className="dashboard-main flex-1 flex flex-col min-w-0 lg:ml-0" style={{ minHeight: '100vh' }}>
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-0 h-screen pt-16 lg:pt-0">
         {/* Dynamic Header */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block relative z-30 flex-shrink-0">
           <DynamicHeader 
             title={user?.role === 'admin' ? "Manage Classes" : "My Classes"}
             subtitle={user?.role === 'admin' ? "View and manage all system classes" : "View your assigned classes and student rosters"}
@@ -478,405 +453,513 @@ const ClassesPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-transparent p-4 sm:p-6 lg:p-8 min-h-0" style={{ minHeight: 'calc(100vh - 80px)', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <div className="dashboard-content w-full max-w-7xl mx-auto px-4 lg:px-8">
-        {/* Enhanced Search & Filter Card */}
-        <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8 border border-white/10 shadow-2xl">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8 space-y-4 lg:space-y-0">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
-                <svg className="h-5 w-5 lg:h-6 lg:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <h2 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-                Search & Filter
-              </h2>
-            </div>
-            <div className="flex items-center space-x-2 text-sm text-blue-200/70">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-              <span>Real-time search</span>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 lg:gap-6">
-            <div className="xl:col-span-3">
-              <label className="block text-sm font-semibold text-white/90 mb-3">
-                Search Classes
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-sm group-hover:blur-md transition-all duration-300"></div>
-                <input
-                  type="text"
-                  placeholder={user?.role === 'admin' ? "Search by class name, code, or teacher..." : "Search your assigned classes..."}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="relative w-full px-4 lg:px-6 py-3 lg:py-4 pl-10 lg:pl-12 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 backdrop-blur-sm transition-all duration-300"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 lg:pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 lg:h-6 lg:w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute inset-y-0 right-0 pr-3 lg:pr-4 flex items-center"
-                  >
-                    <svg className="h-5 w-5 text-white/50 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {/* Only show Create New Class button for Admin users */}
-            {user?.role === 'admin' && (
-              <div className="flex items-end">
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="w-full group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 lg:py-4 px-4 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center justify-center space-x-2 lg:space-x-3">
-                    <svg className="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span className="text-sm lg:text-lg">Create New Class</span>
-                  </div>
-                </button>
-              </div>
-            )}
-          </div>
-          
-          {/* Quick Stats - Role-specific Metrics */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-            {/* Admin Metrics */}
-            {user?.role === 'admin' && (
-              <>
-                <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/20 hover:border-blue-400/30 hover:bg-blue-500/15 transition-all duration-300 group">
+        <main className="flex-1 overflow-y-auto bg-transparent p-4 sm:p-6 lg:p-8 relative z-20">
+          <div className="dashboard-content w-full max-w-7xl mx-auto">
+            {/* Enhanced Search & Filter Card - IMPROVED MOBILE VISIBILITY */}
+            <div className="w-full bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-6 lg:p-8 mb-6 lg:mb-8 border border-white/20 shadow-2xl">
+              {/* Header Section - Improved Mobile Visibility */}
+              <div className="flex flex-col space-y-4 mb-6 lg:mb-8">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl shadow-lg">
+                      <svg className="h-5 w-5 lg:h-6 lg:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-blue-200 transition-colors duration-200">{classes.length}</p>
-                      <p className="text-sm text-white/70">Total Classes</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-xl p-4 border border-emerald-500/20 hover:border-emerald-400/30 hover:bg-emerald-500/15 transition-all duration-300 group">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-emerald-200 transition-colors duration-200">{classes.filter(c => c.status === 'Active').length}</p>
-                      <p className="text-sm text-white/70">Active Classes</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20 hover:border-purple-400/30 hover:bg-purple-500/15 transition-all duration-300 group">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-purple-200 transition-colors duration-200">{classes.filter(c => c.assignedTeacher !== 'Unassigned').length}</p>
-                      <p className="text-sm text-white/70">Assigned Teachers</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-xl p-4 border border-orange-500/20 hover:border-orange-400/30 hover:bg-orange-500/15 transition-all duration-300 group">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-orange-200 transition-colors duration-200">{classes.filter(c => c.assignedTeacher === 'Unassigned').length}</p>
-                      <p className="text-sm text-white/70">Unassigned</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-            
-            {/* Teacher Metrics */}
-            {user?.role === 'teacher' && (
-              <>
-                <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/20 hover:border-blue-400/30 hover:bg-blue-500/15 transition-all duration-300 group">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-blue-200 transition-colors duration-200">{teacherMetrics.total_classes}</p>
-                      <p className="text-sm text-white/70">My Classes</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-xl p-4 border border-emerald-500/20 hover:border-emerald-400/30 hover:bg-emerald-500/15 transition-all duration-300 group">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
-                      <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-white group-hover:text-emerald-200 transition-colors duration-200">{teacherMetrics.total_students}</p>
-                      <p className="text-sm text-white/70">Total Students</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Enhanced Error Message */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-200 px-6 py-4 rounded-xl mb-8 backdrop-blur-sm">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold">Failed to load classes</p>
-                <p className="text-sm text-red-300/80">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Enhanced Classes Table - Full Width Responsive Design */}
-        <div className="w-full bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-          {loading ? (
-            <div className="p-8 lg:p-12 text-center">
-              <div className="inline-flex flex-col items-center space-y-4">
-                <div className="relative">
-                  <div className="w-12 h-12 lg:w-16 lg:h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                  <div className="absolute inset-0 w-12 h-12 lg:w-16 lg:h-16 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-base lg:text-lg font-semibold text-white">Loading Classes</p>
-                  <p className="text-sm text-white/60">Please wait while we fetch your data...</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="px-4 sm:px-6 lg:px-8 py-4 bg-white/5 border-b border-white/10">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-                  <h3 className="text-base lg:text-lg font-semibold text-white">Classes Overview</h3>
-                  <div className="flex items-center space-x-2 text-sm text-white/60">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span>{filteredClasses.length} classes</span>
-                  </div>
-                </div>
-              </div>
-              
-              {filteredClasses.length === 0 ? (
-                <div className="p-8 lg:p-12 text-center">
-                  <div className="inline-flex flex-col items-center space-y-4 lg:space-y-6">
-                    <div className="relative">
-                      <div className="w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl flex items-center justify-center">
-                        <svg className="w-10 h-10 lg:w-12 lg:h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="space-y-2 lg:space-y-3">
-                      <h3 className="text-lg lg:text-xl font-semibold text-white">
-                        {searchTerm ? 'No classes found' : 'No classes available'}
-                      </h3>
-                      <p className="text-white/60 max-w-md text-sm lg:text-base">
-                        {searchTerm 
-                          ? `No classes match your search for "${searchTerm}". Try adjusting your search terms.`
-                          : 'Get started by creating your first class. Click the "Create New Class" button above.'
-                        }
+                      <h2 className="text-lg lg:text-2xl font-bold text-white">
+                        Search & Filter
+                      </h2>
+                      <p className="text-xs text-white/70 mt-1 lg:hidden">
+                        Find classes quickly
                       </p>
                     </div>
-                    {!searchTerm && (
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs text-emerald-300 bg-emerald-500/20 px-2 py-1 rounded-full border border-emerald-500/30">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span className="font-medium">Real-time</span>
+                  </div>
+                </div>
+                
+                {/* Search Input - Improved Mobile Visibility */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-white">
+                    Search Classes
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 to-teal-500/30 rounded-xl blur-sm group-hover:blur transition-all duration-300"></div>
+                    <input
+                      type="text"
+                      placeholder={user?.role === 'admin' ? "Search by class name, code, or teacher..." : "Search your assigned classes..."}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="relative w-full px-4 py-3 lg:py-4 pl-12 bg-white/15 border-2 border-white/30 rounded-xl text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 backdrop-blur-sm transition-all duration-300 text-base lg:text-base font-medium"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 lg:h-6 lg:w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    {searchTerm && (
                       <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105"
+                        onClick={() => setSearchTerm('')}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                        title="Clear search"
+                        aria-label="Clear search input"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        <svg className="h-5 w-5 text-white/70 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        <span>Create Your First Class</span>
                       </button>
                     )}
                   </div>
                 </div>
+                
+                {/* Only show Create New Class button for Admin users */}
+                {user?.role === 'admin' && (
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="w-full group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 lg:py-4 px-4 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg text-base lg:text-base border-2 border-emerald-400/50"
+                      title="Create new class"
+                      aria-label="Create new class"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative flex items-center justify-center space-x-3">
+                        <svg className="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span className="font-semibold">Create New Class</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {/* Quick Stats - Role-specific Metrics - IMPROVED MOBILE VISIBILITY */}
+              <div className="mt-6 grid grid-cols-2 gap-3 lg:gap-4">
+                {/* Admin Metrics */}
+                {user?.role === 'admin' && (
+                  <>
+                    <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-3 lg:p-4 border-2 border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-blue-200 transition-colors duration-200">{classes.length}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">Total Classes</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl p-3 lg:p-4 border-2 border-emerald-500/30 hover:border-emerald-400/50 hover:bg-emerald-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-emerald-200 transition-colors duration-200">{classes.filter(c => c.status === 'Active').length}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">Active Classes</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-3 lg:p-4 border-2 border-purple-500/30 hover:border-purple-400/50 hover:bg-purple-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-purple-200 transition-colors duration-200">{classes.filter(c => c.assignedTeacher !== 'Unassigned').length}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">Assigned Teachers</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl p-3 lg:p-4 border-2 border-orange-500/30 hover:border-orange-400/50 hover:bg-orange-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg shadow-lg group-hover:shadow-orange-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-orange-200 transition-colors duration-200">{classes.filter(c => c.assignedTeacher === 'Unassigned').length}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">Unassigned</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Teacher Metrics */}
+                {user?.role === 'teacher' && (
+                  <>
+                    <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl p-3 lg:p-4 border-2 border-blue-500/30 hover:border-blue-400/50 hover:bg-blue-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-blue-200 transition-colors duration-200">{teacherMetrics.total_classes}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">My Classes</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-xl p-3 lg:p-4 border-2 border-emerald-500/30 hover:border-emerald-400/50 hover:bg-emerald-500/20 transition-all duration-300 group">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 lg:p-2.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
+                          <svg className="h-4 w-4 lg:h-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-lg lg:text-2xl font-bold text-white group-hover:text-emerald-200 transition-colors duration-200">{teacherMetrics.total_students}</p>
+                          <p className="text-xs lg:text-sm text-white/80 font-medium">Total Students</p>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Enhanced Error Message */}
+            {error && (
+              <div className="bg-red-500/20 border-2 border-red-500/40 text-red-200 px-4 lg:px-6 py-3 lg:py-4 rounded-xl mb-6 lg:mb-8 backdrop-blur-sm">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-500/30 rounded-lg">
+                    <svg className="w-4 h-4 lg:w-5 lg:h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm lg:text-base">Failed to load classes</p>
+                    <p className="text-xs lg:text-sm text-red-300/80">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Classes Table - MOBILE OPTIMIZED */}
+            <div className="w-full bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl">
+              {loading ? (
+                <div className="p-6 lg:p-12 text-center">
+                  <div className="inline-flex flex-col items-center space-y-4">
+                    <div className="relative">
+                      <div className="w-10 h-10 lg:w-16 lg:h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                      <div className="absolute inset-0 w-10 h-10 lg:w-16 lg:h-16 border-4 border-transparent border-t-emerald-500 rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm lg:text-lg font-semibold text-white">Loading Classes</p>
+                      <p className="text-xs lg:text-sm text-white/60">Please wait while we fetch your data...</p>
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-white/10 shadow-2xl">
-                  <table className="min-w-full divide-y divide-white/10">
-                    <thead className="bg-gradient-to-r from-slate-800/50 to-blue-900/30 backdrop-blur-sm">
-                      <tr>
-                        <th className="px-4 sm:px-6 lg:px-8 py-4 text-left text-xs font-bold text-white/90 uppercase tracking-wider">
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <>
+                  <div className="px-4 lg:px-8 py-4 bg-white/10 border-b border-white/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                      <h3 className="text-base lg:text-lg font-semibold text-white">Classes Overview</h3>
+                      <div className="flex items-center space-x-2 text-xs lg:text-sm text-white/70 bg-white/10 px-3 py-1.5 rounded-full border border-white/20">
+                        <svg className="w-3 h-3 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span className="font-medium">{filteredClasses.length} classes</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {filteredClasses.length === 0 ? (
+                    <div className="p-6 lg:p-12 text-center">
+                      <div className="inline-flex flex-col items-center space-y-4 lg:space-y-6">
+                        <div className="relative">
+                          <div className="w-16 h-16 lg:w-24 lg:h-24 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-2xl flex items-center justify-center border-2 border-white/20">
+                            <svg className="w-8 h-8 lg:w-12 lg:h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            <span>Class Name</span>
                           </div>
-                        </th>
-                        <th className="px-4 sm:px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
-                          <div className="flex items-center justify-center space-x-2">
-                            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                        </div>
+                        <div className="space-y-2 lg:space-y-3">
+                          <h3 className="text-base lg:text-xl font-semibold text-white">
+                            {searchTerm ? 'No classes found' : 'No classes available'}
+                          </h3>
+                          <p className="text-white/70 max-w-md text-xs lg:text-base">
+                            {searchTerm 
+                              ? `No classes match your search for "${searchTerm}". Try adjusting your search terms.`
+                              : 'Get started by creating your first class. Click the "Create New Class" button above.'
+                            }
+                          </p>
+                        </div>
+                        {!searchTerm && user?.role === 'admin' && (
+                          <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="inline-flex items-center space-x-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-2 lg:py-3 px-4 lg:px-6 rounded-xl transition-all duration-300 transform hover:scale-105 text-sm lg:text-base border-2 border-emerald-400/50"
+                            title="Create your first class"
+                            aria-label="Create your first class"
+                          >
+                            <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            <span>Class Code</span>
-                          </div>
-                        </th>
-                        <th className="hidden sm:table-cell px-4 sm:px-6 lg:px-8 py-4 text-left text-xs font-bold text-white/90 uppercase tracking-wider">
-                          <div className="flex items-center space-x-2">
-                            <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            <span>Assigned Teacher</span>
-                          </div>
-                        </th>
-                        <th className="px-4 sm:px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
-                          <div className="flex items-center justify-center space-x-2">
-                            <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Status</span>
-                          </div>
-                        </th>
-                        <th className="px-4 sm:px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
-                          <div className="flex items-center justify-center space-x-2">
-                            <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span>Actions</span>
-                          </div>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white/5 divide-y divide-white/10">
-                      {filteredClasses.map((classItem) => (
-                        <tr key={classItem.id} className="hover:bg-white/10 transition-all duration-300 group border-b border-white/5">
-                          <td className="px-4 sm:px-6 lg:px-8 py-5 whitespace-nowrap">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
-                                <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <span>Create Your First Class</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      {/* Mobile Card View */}
+                      <div className="block lg:hidden">
+                        <div className="space-y-3 p-4">
+                          {filteredClasses.map((classItem) => (
+                            <div key={classItem.id} className="bg-white/10 rounded-xl p-4 border-2 border-white/20 hover:bg-white/15 transition-all duration-300">
+                              {/* Header */}
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="text-sm font-bold text-white truncate">{classItem.name}</h4>
+                                    <p className="text-xs text-white/70 truncate">ID: {classItem.id}</p>
+                                  </div>
+                                </div>
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-emerald-500/30 via-green-500/30 to-teal-500/30 text-emerald-300 border border-emerald-500/40">
+                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1.5"></div>
+                                  Active
+                                </span>
+                              </div>
+                              
+                              {/* Details */}
+                              <div className="space-y-2 mb-4">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-white/70 font-medium">Class Code:</span>
+                                  <span className="text-white font-bold">{classItem.code}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-white/70 font-medium">Teacher:</span>
+                                  <span className="text-white font-medium truncate ml-2">{classItem.assignedTeacher}</span>
+                                </div>
+                              </div>
+                              
+                              {/* Actions */}
+                              <div className="flex items-center justify-between pt-3 border-t border-white/20">
+                                <div className="flex items-center space-x-2">
+                                  {/* Roster button - only for teachers */}
+                                  {user?.role === 'teacher' && (
+                                    <button
+                                      onClick={() => handleViewRoster(classItem)}
+                                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500/30 to-emerald-500/30 hover:from-green-500/40 hover:to-emerald-500/40 text-green-300 hover:text-green-200 rounded-lg transition-all duration-300 text-xs border border-green-500/40 font-medium"
+                                      title={`View roster for ${classItem.name}`}
+                                      aria-label={`View student roster for ${classItem.name}`}
+                                    >
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                      </svg>
+                                      <span>Roster</span>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Edit and Delete buttons - only for admin */}
+                                  {user?.role === 'admin' && (
+                                    <>
+                                      <button
+                                        onClick={() => openEditModal(classItem)}
+                                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500/30 to-indigo-500/30 hover:from-blue-500/40 hover:to-indigo-500/40 text-blue-300 hover:text-blue-200 rounded-lg transition-all duration-300 text-xs border border-blue-500/40 font-medium"
+                                        title={`Edit ${classItem.name}`}
+                                        aria-label={`Edit class ${classItem.name}`}
+                                      >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <span>Edit</span>
+                                      </button>
+                                      <button
+                                        onClick={() => openDeleteModal(classItem)}
+                                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-red-500/30 to-pink-500/30 hover:from-red-500/40 hover:to-pink-500/40 text-red-300 hover:text-red-200 rounded-lg transition-all duration-300 text-xs border border-red-500/40 font-medium"
+                                        title={`Delete ${classItem.name}`}
+                                        aria-label={`Delete class ${classItem.name}`}
+                                      >
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        <span>Delete</span>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Desktop Table View */}
+                      <table className="hidden lg:table min-w-full divide-y divide-white/10">
+                        <thead className="bg-gradient-to-r from-slate-800/50 to-blue-900/30 backdrop-blur-sm">
+                          <tr>
+                            <th className="px-6 lg:px-8 py-4 text-left text-xs font-bold text-white/90 uppercase tracking-wider">
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                 </svg>
+                                <span>Class Name</span>
                               </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-bold text-white truncate group-hover:text-blue-200 transition-colors duration-200">{classItem.name}</div>
-                                <div className="text-xs text-white/60 hidden sm:block mt-1">Class ID: {classItem.id}</div>
-                                <div className="text-xs text-white/60 sm:hidden mt-1">{classItem.assignedTeacher}</div>
+                            </th>
+                            <th className="px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
+                              <div className="flex items-center justify-center space-x-2">
+                                <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                                </svg>
+                                <span>Class Code</span>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 lg:px-8 py-5 whitespace-nowrap text-center">
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-blue-300 border border-blue-500/30 shadow-sm hover:shadow-blue-500/20 transition-all duration-200">
-                              <svg className="w-3 h-3 mr-1.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                              </svg>
-                              {classItem.code}
-                            </span>
-                          </td>
-                          <td className="hidden sm:table-cell px-4 sm:px-6 lg:px-8 py-5 whitespace-nowrap">
-                            <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
-                                <svg className="w-4 h-4 lg:w-5 lg:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            </th>
+                            <th className="px-6 lg:px-8 py-4 text-left text-xs font-bold text-white/90 uppercase tracking-wider">
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
+                                <span>Assigned Teacher</span>
                               </div>
-                              <span className="text-sm font-medium text-white/90 truncate group-hover:text-emerald-200 transition-colors duration-200">{classItem.assignedTeacher}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 sm:px-6 lg:px-8 py-5 whitespace-nowrap text-center">
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm hover:shadow-emerald-500/20 transition-all duration-200">
-                              <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse shadow-sm"></div>
-                              <svg className="w-3 h-3 mr-1.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
-                              {classItem.status}
-                            </span>
-                          </td>
-                          <td className="px-4 sm:px-6 lg:px-8 py-5 whitespace-nowrap text-center">
-                            <div className="flex items-center justify-center space-x-2">
-                              {/* Roster button - only for teachers */}
-                              {user?.role === 'teacher' && (
-                                <button
-                                  onClick={() => handleViewRoster(classItem)}
-                                  className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 text-green-300 hover:text-green-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 border border-green-500/30"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </th>
+                            <th className="px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
+                              <div className="flex items-center justify-center space-x-2">
+                                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>Status</span>
+                              </div>
+                            </th>
+                            <th className="px-6 lg:px-8 py-4 text-center text-xs font-bold text-white/90 uppercase tracking-wider">
+                              <div className="flex items-center justify-center space-x-2">
+                                <svg className="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span>Actions</span>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white/5 divide-y divide-white/10">
+                          {filteredClasses.map((classItem) => (
+                            <tr key={classItem.id} className="hover:bg-white/10 transition-all duration-300 group border-b border-white/5">
+                              <td className="px-6 lg:px-8 py-5 whitespace-nowrap">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
+                                    <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-bold text-white truncate group-hover:text-blue-200 transition-colors duration-200">{classItem.name}</div>
+                                    <div className="text-xs text-white/60 mt-1">Class ID: {classItem.id}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-center">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-indigo-500/20 text-blue-300 border border-blue-500/30 shadow-sm hover:shadow-blue-500/20 transition-all duration-200">
+                                  <svg className="w-3 h-3 mr-1.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                                   </svg>
-                                  <span className="hidden sm:inline font-medium">Roster</span>
-                                </button>
-                              )}
-                              
-                              {/* Edit and Delete buttons - only for admin */}
-                              {user?.role === 'admin' && (
-                                <>
-                                  <button
-                                    onClick={() => openEditModal(classItem)}
-                                    className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 text-blue-300 hover:text-blue-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 border border-blue-500/30"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  {classItem.code}
+                                </span>
+                              </td>
+                              <td className="px-6 lg:px-8 py-5 whitespace-nowrap">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-emerald-500/25 transition-all duration-300">
+                                    <svg className="w-4 h-4 lg:w-5 lg:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    <span className="hidden sm:inline font-medium">Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => openDeleteModal(classItem)}
-                                    className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-300 hover:text-red-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 border border-red-500/30"
-                                  >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                    <span className="hidden sm:inline font-medium">Delete</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                                  </div>
+                                  <span className="text-sm font-medium text-white/90 truncate group-hover:text-emerald-200 transition-colors duration-200">{classItem.assignedTeacher}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-center">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-emerald-500/20 via-green-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm hover:shadow-emerald-500/20 transition-all duration-200">
+                                  <div className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse shadow-sm"></div>
+                                  <svg className="w-3 h-3 mr-1.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  {classItem.status}
+                                </span>
+                              </td>
+                              <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-center">
+                                <div className="flex items-center justify-center space-x-2">
+                                  {/* Roster button - only for teachers */}
+                                  {user?.role === 'teacher' && (
+                                    <button
+                                      onClick={() => handleViewRoster(classItem)}
+                                      className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 text-green-300 hover:text-green-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 border border-green-500/30"
+                                      title={`View roster for ${classItem.name}`}
+                                      aria-label={`View student roster for ${classItem.name}`}
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                      </svg>
+                                      <span className="font-medium">Roster</span>
+                                    </button>
+                                  )}
+                                  
+                                  {/* Edit and Delete buttons - only for admin */}
+                                  {user?.role === 'admin' && (
+                                    <>
+                                      <button
+                                        onClick={() => openEditModal(classItem)}
+                                        className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 hover:from-blue-500/30 hover:to-indigo-500/30 text-blue-300 hover:text-blue-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 border border-blue-500/30"
+                                        title={`Edit ${classItem.name}`}
+                                        aria-label={`Edit class ${classItem.name}`}
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <span className="font-medium">Edit</span>
+                                      </button>
+                                      <button
+                                        onClick={() => openDeleteModal(classItem)}
+                                        className="inline-flex items-center space-x-1.5 px-3 py-2 bg-gradient-to-r from-red-500/20 to-pink-500/20 hover:from-red-500/30 hover:to-pink-500/30 text-red-300 hover:text-red-200 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 border border-red-500/30"
+                                        title={`Delete ${classItem.name}`}
+                                        aria-label={`Delete class ${classItem.name}`}
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                        <span className="font-medium">Delete</span>
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </div>
+            </div>
           </div>
         </main>
       </div>
 
+      {/* MODALS - REMAIN THE SAME */}
       {/* Create Class Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700/50">
+          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700/50 max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-white mb-6">Create New Class</h3>
             
             {formError && (
@@ -903,10 +986,11 @@ const ClassesPage: React.FC = () => {
 
             <form onSubmit={handleCreateClass} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="className" className="block text-sm font-medium text-gray-300 mb-2">
                   Class Name
                 </label>
                 <input
+                  id="className"
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -917,10 +1001,11 @@ const ClassesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="classCode" className="block text-sm font-medium text-gray-300 mb-2">
                   Class Code
                 </label>
                 <input
+                  id="classCode"
                   type="text"
                   value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
@@ -931,13 +1016,15 @@ const ClassesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="teacherSelect" className="block text-sm font-medium text-gray-300 mb-2">
                   Assigned Teacher
                 </label>
                 <select
+                  id="teacherSelect"
                   value={formData.teacher_id || ''}
                   onChange={(e) => setFormData({ ...formData, teacher_id: e.target.value ? parseInt(e.target.value) : undefined })}
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50"
+                  aria-label="Select a teacher"
                 >
                   <option value="">Select a teacher (optional)</option>
                   {teachers.map((teacher) => (
@@ -953,6 +1040,8 @@ const ClassesPage: React.FC = () => {
                   type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                  title="Cancel class creation"
+                  aria-label="Cancel creating new class"
                 >
                   Cancel
                 </button>
@@ -960,6 +1049,8 @@ const ClassesPage: React.FC = () => {
                   type="submit"
                   disabled={formLoading}
                   className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={formLoading ? "Creating class..." : "Create new class"}
+                  aria-label={formLoading ? "Creating class, please wait" : "Create new class"}
                 >
                   {formLoading ? 'Creating...' : 'Create Class'}
                 </button>
@@ -972,7 +1063,7 @@ const ClassesPage: React.FC = () => {
       {/* Edit Class Modal */}
       {isEditModalOpen && editingClass && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700/50">
+          <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md border border-gray-700/50 max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-semibold text-white mb-6">Edit Class</h3>
             
             {editFormError && (
@@ -999,10 +1090,11 @@ const ClassesPage: React.FC = () => {
 
             <form onSubmit={handleEditClass} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="editClassName" className="block text-sm font-medium text-gray-300 mb-2">
                   Class Name
                 </label>
                 <input
+                  id="editClassName"
                   type="text"
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
@@ -1013,10 +1105,11 @@ const ClassesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="editClassCode" className="block text-sm font-medium text-gray-300 mb-2">
                   Class Code
                 </label>
                 <input
+                  id="editClassCode"
                   type="text"
                   value={editFormData.code}
                   onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value.toUpperCase() })}
@@ -1027,13 +1120,15 @@ const ClassesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="editTeacherSelect" className="block text-sm font-medium text-gray-300 mb-2">
                   Assigned Teacher
                 </label>
                 <select
+                  id="editTeacherSelect"
                   value={editFormData.teacher_id || ''}
                   onChange={(e) => setEditFormData({ ...editFormData, teacher_id: e.target.value ? parseInt(e.target.value) : undefined })}
                   className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50"
+                  aria-label="Select a teacher for editing"
                 >
                   <option value="">Select a teacher (optional)</option>
                   {teachers.map((teacher) => (
@@ -1049,6 +1144,8 @@ const ClassesPage: React.FC = () => {
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
                   className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                  title="Cancel editing"
+                  aria-label="Cancel editing class"
                 >
                   Cancel
                 </button>
@@ -1056,6 +1153,8 @@ const ClassesPage: React.FC = () => {
                   type="submit"
                   disabled={editFormLoading}
                   className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={editFormLoading ? "Updating class..." : "Update class"}
+                  aria-label={editFormLoading ? "Updating class, please wait" : "Update class"}
                 >
                   {editFormLoading ? 'Updating...' : 'Update Class'}
                 </button>
@@ -1107,6 +1206,8 @@ const ClassesPage: React.FC = () => {
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
                 className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                title="Cancel deletion"
+                aria-label="Cancel class deletion"
               >
                 Cancel
               </button>
@@ -1114,6 +1215,8 @@ const ClassesPage: React.FC = () => {
                 onClick={handleDeleteClass}
                 disabled={deleteLoading}
                 className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title={deleteLoading ? "Deleting class..." : "Delete class"}
+                aria-label={deleteLoading ? "Deleting class, please wait" : "Delete class"}
               >
                 {deleteLoading ? 'Deleting...' : 'Delete Class'}
               </button>
@@ -1133,6 +1236,8 @@ const ClassesPage: React.FC = () => {
               <button
                 onClick={handleCloseRosterModal}
                 className="text-gray-400 hover:text-white transition-colors"
+                title="Close roster"
+                aria-label="Close student roster modal"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1204,6 +1309,8 @@ const ClassesPage: React.FC = () => {
               <button
                 onClick={handleCloseRosterModal}
                 className="px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition-colors"
+                title="Close roster"
+                aria-label="Close student roster"
               >
                 Close
               </button>

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import DynamicHeader from '../components/DynamicHeader';
 import Sidebar from '../components/Sidebar';
+import plmunLogo from '../assets/images/PLMUNLOGO.png';
 
 // API configuration
 const API_BASE_URL = 'http://localhost:8000';
@@ -78,7 +79,21 @@ const SubmissionsViewPage: React.FC = () => {
   const [editingGrade, setEditingGrade] = useState<{[key: number]: number}>({});
   const [isSaving, setIsSaving] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Logout function
+  const handleLogout = () => {
+    try {
+      // Clear authentication data
+      localStorage.clear();
+
+      // Force redirect to login page
+      window.location.href = "/login";
+    } catch (error) {
+      // Fallback: direct redirect
+      window.location.href = "/login";
+    }
+  };
 
   useEffect(() => {
     // Check authentication and role
@@ -356,7 +371,6 @@ const SubmissionsViewPage: React.FC = () => {
     }
   };
 
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -405,232 +419,317 @@ const SubmissionsViewPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex">
-      {/* Sidebar */}
-      <Sidebar 
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
+      {/* Fixed Sidebar - Always fixed position */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition duration-300 ease-in-out`}>
+        <Sidebar 
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
+      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Dynamic Header */}
-        <div className="hidden lg:block">
-          <DynamicHeader 
-            title={user?.role === 'student' ? "My Grades" : "Digital Grading"}
-            subtitle={user?.role === 'student' 
-              ? "View your assignment grades and performance" 
-              : `${assignment?.name || 'Assignment'} - ${classInfo?.name || 'Class'}`
-            }
-            showBackButton={true}
-            backTo={user?.role === 'student' ? "/student/dashboard" : "/teacher/assignments"}
-            backLabel={user?.role === 'student' ? "Back to Dashboard" : "Back to Assignments"}
-          />
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* Main Content Area - Adjusted for fixed sidebar */}
+      <div className="flex-1 flex flex-col min-w-0 lg:ml-64">
+        
+        {/* Fixed Header Container - Hindi nag-scroll */}
+        <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 bg-slate-900/95 backdrop-blur-xl border-b border-slate-700/50">
+          {/* Mobile Header */}
+          <header className="lg:hidden p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl blur-sm"></div>
+                <img
+                  src={plmunLogo}
+                  alt="PLMun Logo"
+                  className="relative w-8 h-8 object-contain"
+                />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">
+                  {user?.role === 'student' ? "My Grades" : "Digital Grading"}
+                </h1>
+                <p className="text-xs text-slate-400">
+                  {user?.role === 'student' 
+                    ? "View your assignment grades and performance" 
+                    : `${assignment?.name || 'Assignment'} - ${classInfo?.name || 'Class'}`
+                  }
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-all duration-200 border border-red-500/30 hover:border-red-500/50 cursor-pointer"
+                title="Logout"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+              </button>
+
+              {/* Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 rounded-xl bg-slate-700/50 hover:bg-slate-600/50 transition-colors cursor-pointer"
+                title="Toggle menu"
+              >
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </div>
+          </header>
+
+          {/* Desktop Header - Fixed position */}
+          <div className="hidden lg:block">
+            <DynamicHeader 
+              title={user?.role === 'student' ? "My Grades" : "Digital Grading"}
+              subtitle={user?.role === 'student' 
+                ? "View your assignment grades and performance" 
+                : `${assignment?.name || 'Assignment'} - ${classInfo?.name || 'Class'}`
+              }
+              showBackButton={true}
+              backTo={user?.role === 'student' ? "/student/dashboard" : "/teacher/assignments"}
+              backLabel={user?.role === 'student' ? "Back to Dashboard" : "Back to Assignments"}
+              onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
+            />
+          </div>
         </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Assignment Info Card */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl mb-8">
-          <div className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-white mb-2">{assignment?.name}</h2>
-                <p className="text-slate-300 mb-4">{assignment?.description || 'No description provided'}</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-slate-700/50 rounded-xl p-4">
-                    <div className="text-slate-400 text-sm mb-1">Class</div>
-                    <div className="text-white font-semibold">{classInfo?.name}</div>
-                    <div className="text-slate-400 text-xs">{classInfo?.code}</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-xl p-4">
-                    <div className="text-slate-400 text-sm mb-1">Total Submissions</div>
-                    <div className="text-white font-semibold text-lg">{submissions.length}</div>
-                  </div>
-                  <div className="bg-slate-700/50 rounded-xl p-4">
-                    <div className="text-slate-400 text-sm mb-1">Avg. Engagement</div>
-                    <div className={`font-semibold text-lg ${getEngagementScoreColor(engagementInsight?.engagement_score || 0)}`}>
-                      {engagementInsight?.engagement_score?.toFixed(1) || '0.0'}/10
+        {/* Scrollable Main Content - Adjusted padding for fixed headers */}
+        <main className="flex-1 overflow-auto pt-16 lg:pt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Assignment Info Card */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl mb-8">
+              <div className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-white mb-2">{assignment?.name}</h2>
+                    <p className="text-slate-300 mb-4">{assignment?.description || 'No description provided'}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-slate-700/50 rounded-xl p-4">
+                        <div className="text-slate-400 text-sm mb-1">Class</div>
+                        <div className="text-white font-semibold">{classInfo?.name}</div>
+                        <div className="text-slate-400 text-xs">{classInfo?.code}</div>
+                      </div>
+                      <div className="bg-slate-700/50 rounded-xl p-4">
+                        <div className="text-slate-400 text-sm mb-1">Total Submissions</div>
+                        <div className="text-white font-semibold text-lg">{submissions.length}</div>
+                      </div>
+                      <div className="bg-slate-700/50 rounded-xl p-4">
+                        <div className="text-slate-400 text-sm mb-1">Avg. Engagement</div>
+                        <div className={`font-semibold text-lg ${getEngagementScoreColor(engagementInsight?.engagement_score || 0)}`}>
+                          {engagementInsight?.engagement_score?.toFixed(1) || '0.0'}/10
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Submissions Table */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-700/50">
-            <h3 className="text-lg font-bold text-white">Student Submissions</h3>
-            <p className="text-sm text-slate-400">Grade student submissions and view engagement metrics</p>
-          </div>
-          
-          {submissions.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-700/60 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+            {/* Submissions Table */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-700/50">
+                <h3 className="text-lg font-bold text-white">Student Submissions</h3>
+                <p className="text-sm text-slate-400">Grade student submissions and view engagement metrics</p>
               </div>
-              <h4 className="text-lg font-semibold text-white mb-2">No Submissions Yet</h4>
-              <p className="text-slate-400">Students haven't submitted this assignment yet.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-700/60">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      Student
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      Time Spent
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      AI Engagement Score
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      Submitted At
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      Current Grade
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/50">
-                  {submissions.map((submission) => {
-                    const aiScore = calculateAIScore(submission.time_spent_minutes);
-                    return (
-                      <tr key={submission.id} className="hover:bg-slate-700/30 transition-colors duration-200">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-sm mr-4">
-                              <span className="text-sm font-bold text-white">
-                                {submission.student_name.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-white">{submission.student_name}</div>
-                              <div className="text-xs text-slate-400">ID: {submission.student_id}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-white font-medium">
-                            {submission.time_spent_minutes} minutes
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className={`text-sm font-semibold ${getEngagementScoreColor(aiScore)}`}>
-                            {aiScore.toFixed(1)}/10
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-slate-300">
-                            {formatDate(submission.submitted_at)}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {submission.is_graded ? (
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getGradeColor(submission.grade!)}`}>
-                              {submission.grade}%
-                            </span>
-                          ) : (
-                            <span className="px-3 py-1 bg-slate-500/20 text-slate-400 text-xs rounded-full border border-slate-500/30">
-                              Not Graded
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4">
-                          {submission.is_graded ? (
-                            <button
-                              onClick={() => setEditingGrade(prev => ({ ...prev, [submission.id]: submission.grade! }))}
-                              className="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500/50"
-                              disabled={isSaving}
-                            >
-                              Edit Grade
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => setEditingGrade(prev => ({ ...prev, [submission.id]: 0 }))}
-                              className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-xs font-medium transition-all duration-200 border border-green-500/30 hover:border-green-500/50"
-                              disabled={isSaving}
-                            >
-                              Grade
-                            </button>
-                          )}
-                        </td>
+              
+              {submissions.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-slate-700/60 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">No Submissions Yet</h4>
+                  <p className="text-slate-400">Students haven't submitted this assignment yet.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-700/60">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Student
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Time Spent
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          AI Engagement Score
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Submitted At
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Current Grade
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                          Actions
+                        </th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700/50">
+                      {submissions.map((submission) => {
+                        const aiScore = calculateAIScore(submission.time_spent_minutes);
+                        return (
+                          <tr key={submission.id} className="hover:bg-slate-700/30 transition-colors duration-200">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-sm mr-4">
+                                  <span className="text-sm font-bold text-white">
+                                    {submission.student_name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-semibold text-white">{submission.student_name}</div>
+                                  <div className="text-xs text-slate-400">ID: {submission.student_id}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-white font-medium">
+                                {submission.time_spent_minutes} minutes
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className={`text-sm font-semibold ${getEngagementScoreColor(aiScore)}`}>
+                                {aiScore.toFixed(1)}/10
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="text-sm text-slate-300">
+                                {formatDate(submission.submitted_at)}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {submission.is_graded ? (
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getGradeColor(submission.grade!)}`}>
+                                  {submission.grade}%
+                                </span>
+                              ) : (
+                                <span className="px-3 py-1 bg-slate-500/20 text-slate-400 text-xs rounded-full border border-slate-500/30">
+                                  Not Graded
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              {submission.is_graded ? (
+                                <button
+                                  onClick={() => setEditingGrade(prev => ({ ...prev, [submission.id]: submission.grade! }))}
+                                  className="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg text-xs font-medium transition-all duration-200 border border-blue-500/30 hover:border-blue-500/50"
+                                  disabled={isSaving}
+                                >
+                                  Edit Grade
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => setEditingGrade(prev => ({ ...prev, [submission.id]: 0 }))}
+                                  className="px-3 py-1 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-xs font-medium transition-all duration-200 border border-green-500/30 hover:border-green-500/50"
+                                  disabled={isSaving}
+                                >
+                                  Grade
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Grade Input Section */}
-        {Object.keys(editingGrade).length > 0 && (
-          <div className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl">
-            <div className="p-6">
-              <h4 className="text-lg font-semibold text-white mb-4">Grade Submissions</h4>
-              <div className="space-y-4">
-                {Object.entries(editingGrade).map(([submissionId, grade]) => {
-                  const submission = submissions.find(s => s.id === parseInt(submissionId));
-                  return (
-                    <div key={submissionId} className="flex items-center space-x-4 p-4 bg-slate-700/50 rounded-xl">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-white">{submission?.student_name}</div>
-                        <div className="text-xs text-slate-400">
-                          Time: {submission?.time_spent_minutes} minutes | 
-                          AI Score: {calculateAIScore(submission?.time_spent_minutes || 0).toFixed(1)}/10
+            {/* Grade Input Section */}
+            {Object.keys(editingGrade).length > 0 && (
+              <div className="mt-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl shadow-xl">
+                <div className="p-6">
+                  <h4 className="text-lg font-semibold text-white mb-4">Grade Submissions</h4>
+                  <div className="space-y-4">
+                    {Object.entries(editingGrade).map(([submissionId, grade]) => {
+                      const submission = submissions.find(s => s.id === parseInt(submissionId));
+                      return (
+                        <div key={submissionId} className="flex items-center space-x-4 p-4 bg-slate-700/50 rounded-xl">
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-white">{submission?.student_name}</div>
+                            <div className="text-xs text-slate-400">
+                              Time: {submission?.time_spent_minutes} minutes | 
+                              AI Score: {calculateAIScore(submission?.time_spent_minutes || 0).toFixed(1)}/10
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                value={grade}
+                                onChange={(e) => handleGradeChange(parseInt(submissionId), parseFloat(e.target.value) || 0)}
+                                className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Grade"
+                                disabled={isSaving}
+                              />
+                              <span className="text-slate-400 text-sm">%</span>
+                            </div>
+                            <button
+                              onClick={() => handleSaveGrade(parseInt(submissionId))}
+                              className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-sm font-medium transition-all duration-200 border border-green-500/30 hover:border-green-500/50 disabled:opacity-50"
+                              disabled={isSaving}
+                            >
+                              {isSaving ? 'Saving...' : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => setEditingGrade(prev => {
+                                const newState = { ...prev };
+                                delete newState[parseInt(submissionId)];
+                                return newState;
+                              })}
+                              className="px-4 py-2 bg-slate-500/20 hover:bg-slate-500/30 text-slate-400 rounded-lg text-sm font-medium transition-all duration-200 border border-slate-500/30 hover:border-slate-500/50"
+                              disabled={isSaving}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="number"
-                            min="0"
-                            max="100"
-                            step="0.1"
-                            value={grade}
-                            onChange={(e) => handleGradeChange(parseInt(submissionId), parseFloat(e.target.value) || 0)}
-                            className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Grade"
-                            disabled={isSaving}
-                          />
-                          <span className="text-slate-400 text-sm">%</span>
-                        </div>
-                        <button
-                          onClick={() => handleSaveGrade(parseInt(submissionId))}
-                          className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-400 rounded-lg text-sm font-medium transition-all duration-200 border border-green-500/30 hover:border-green-500/50 disabled:opacity-50"
-                          disabled={isSaving}
-                        >
-                          {isSaving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                          onClick={() => setEditingGrade(prev => {
-                            const newState = { ...prev };
-                            delete newState[parseInt(submissionId)];
-                            return newState;
-                          })}
-                          className="px-4 py-2 bg-slate-500/20 hover:bg-slate-500/30 text-slate-400 rounded-lg text-sm font-medium transition-all duration-200 border border-slate-500/30 hover:border-slate-500/50"
-                          disabled={isSaving}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        )}
-      </div>
+        </main>
       </div>
     </div>
   );

@@ -11,6 +11,10 @@ interface DynamicHeaderProps {
   showBackButton?: boolean;
   backTo?: string;
   backLabel?: string;
+  // Add these new props for sidebar functionality
+  onMenuToggle?: () => void;
+  sidebarOpen?: boolean;
+  showMenuToggle?: boolean;
 }
 
 const DynamicHeader: React.FC<DynamicHeaderProps> = ({ 
@@ -18,7 +22,11 @@ const DynamicHeader: React.FC<DynamicHeaderProps> = ({
   subtitle, 
   showBackButton = false,
   backTo = "/admin/dashboard", 
-  backLabel = "Back to Dashboard"
+  backLabel = "Back to Dashboard",
+  // New props with defaults
+  onMenuToggle,
+  sidebarOpen = false,
+  showMenuToggle = false
 }) => {
   const { isSystemActive, lastUpdate } = useSystemStatus();
   const { user } = useUser();
@@ -91,42 +99,43 @@ const DynamicHeader: React.FC<DynamicHeaderProps> = ({
   const userInfo = getUserDisplayInfo();
 
   return (
-    <header className="w-full bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-2xl sticky top-0 z-40">
-      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center py-4 lg:py-6 space-y-4 lg:space-y-0">
-          {/* Left Section - Logo and Title */}
+    <header className="w-full bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-2xl sticky top-0 z-40 h-16 lg:h-20">
+      <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 h-full">
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center py-3 lg:py-4 space-y-2 lg:space-y-0 h-full">
+          {/* Left Section - Hamburger Menu, Logo and Title */}
           <div className="flex items-center space-x-3 lg:space-x-4">
+            {/* Hamburger Menu Button for Mobile */}
+            {showMenuToggle && (
+              <button
+                onClick={onMenuToggle}
+                className="lg:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200 border border-white/20"
+                aria-label="Toggle menu"
+              >
+                {sidebarOpen ? (
+                  // Close icon (X)
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  // Menu icon (Hamburger)
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                )}
+              </button>
+            )}
+
             <div className="relative group/logo">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl lg:rounded-2xl blur-lg opacity-30 group-hover/logo:opacity-50 transition-opacity duration-300"></div>
-              <img src={plmunLogo} alt="PLMUN Logo" className="relative h-10 w-auto sm:h-12 lg:h-14 group-hover/logo:scale-105 transition-transform duration-300" />
+              <img src={plmunLogo} alt="PLMUN Logo" className="relative h-8 w-auto sm:h-10 lg:h-12 group-hover/logo:scale-105 transition-transform duration-300" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                 {title}
               </h1>
-              <p className="text-blue-200/80 text-sm sm:text-base lg:text-lg font-medium">{subtitle}</p>
+              <p className="text-blue-200/80 text-xs sm:text-sm lg:text-base font-medium">{subtitle}</p>
             </div>
           </div>
-
-          {/* Optional Back Button - Only shown when explicitly requested */}
-          {showBackButton && (
-            <div className="flex items-center">
-              <Button
-                as={Link}
-                to={backTo}
-                variant="ghost"
-                size="md"
-                icon={
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                }
-                className="bg-white/10 hover:bg-white/20 text-white/90 hover:text-white transform hover:scale-105 hover:shadow-lg"
-              >
-                {backLabel}
-              </Button>
-            </div>
-          )}
 
           {/* Right Section - Dynamic Status and User Profile */}
           <div className="flex items-center space-x-4 lg:space-x-6">
@@ -149,14 +158,14 @@ const DynamicHeader: React.FC<DynamicHeaderProps> = ({
             </div>
             
             {/* Enhanced User Profile - Role-based display */}
-            <div className="flex items-center space-x-3 lg:space-x-4 bg-white/5 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10 hover:bg-white/10 transition-all duration-300 group">
+            <div className="flex items-center space-x-3 lg:space-x-4 bg-white/5 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/10 hover:bg-white/10 transition-all duration-300 group">
               <div className="text-right space-y-1">
                 <p className="text-sm lg:text-base font-semibold text-white group-hover:text-blue-100 transition-colors">{userInfo.name}</p>
                 <p className="text-xs lg:text-sm text-blue-200/70 group-hover:text-blue-200/90 transition-colors">{userInfo.role}</p>
               </div>
               <div className="relative group/avatar">
                 <div className={`absolute inset-0 bg-gradient-to-r ${userInfo.avatarGradient} rounded-full blur-md opacity-50 group-hover/avatar:opacity-75 transition-opacity duration-300`}></div>
-                <div className={`relative h-10 w-10 lg:h-12 lg:w-12 bg-gradient-to-r ${userInfo.avatarGradient} rounded-full flex items-center justify-center shadow-xl group-hover/avatar:shadow-2xl transition-all duration-300 group-hover/avatar:scale-105`}>
+                <div className={`relative h-8 w-8 lg:h-10 lg:w-10 bg-gradient-to-r ${userInfo.avatarGradient} rounded-full flex items-center justify-center shadow-xl group-hover/avatar:shadow-2xl transition-all duration-300 group-hover/avatar:scale-105`}>
                   <span className="text-white font-bold text-sm lg:text-base">{userInfo.avatar}</span>
                 </div>
                 {/* Dynamic status indicator */}

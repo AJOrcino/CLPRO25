@@ -4,7 +4,6 @@ import authService from '../services/authService';
 import { useUser } from '../contexts/UserContext';
 import { Button, IconButton, Input } from '../components/ui';
 
-
 interface PasswordChangeData {
   current_password: string;
   new_password: string;
@@ -428,7 +427,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin': return '👑';
@@ -462,17 +460,17 @@ const ProfilePage: React.FC = () => {
           <p className="text-slate-400 text-sm mb-6">
             {'Please check your connection and try again'}
           </p>
-          <div className="flex gap-3 justify-center">
+          <div className="flex gap-3 justify-center cursor-pointer">
             <Button
               onClick={() => window.location.reload()}
-              variant="primary"
+              variant="success"
               size="md"
             >
               Retry
             </Button>
             <Button
               onClick={() => navigate(-1)}
-              variant="secondary"
+              variant="success"
               size="md"
             >
               Go Back
@@ -485,22 +483,22 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-y-auto">
-      {/* Header */}
-      <header className="bg-slate-800/95 backdrop-blur-xl border-b border-slate-700/50 shadow-xl">
+      {/* Fixed Header */}
+      <header className="fixed top-0 left-0 right-0 bg-slate-800/95 backdrop-blur-xl border-b border-slate-700/50 shadow-xl z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-4">
-            <IconButton
-              onClick={() => navigate(-1)}
-              icon={
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-              }
-              variant="ghost"
-              size="lg"
-              tooltip="Go Back"
-            />
+              <IconButton
+                onClick={() => navigate(-1)}
+                icon={
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                  </svg>
+                }
+                variant="ghost"
+                size="lg"
+                tooltip="Go Back"
+              />
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -513,7 +511,7 @@ const ProfilePage: React.FC = () => {
             </div>
             <Button
               onClick={handleLogout}
-              variant="secondary"
+              variant="danger"
               size="md"
               icon={
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -527,15 +525,14 @@ const ProfilePage: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Profile Information Card */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl">
-          <div className="flex items-center gap-6 mb-8">
+      {/* Main Content with padding for fixed header */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 mt-20">
+        {/* Profile Header Card */}
+        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
             {/* Profile Photo Section */}
-            <div className="relative">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg border-2 border-slate-600">
-                {/* Show photo preview if uploading */}
+            <div className="relative flex-shrink-0">
+              <div className="w-28 h-28 rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-600/50 bg-gradient-to-br from-purple-500/20 to-blue-500/20">
                 {photoPreview ? (
                   <img 
                     src={photoPreview}
@@ -552,15 +549,14 @@ const ProfilePage: React.FC = () => {
                     }}
                     onError={(e) => {
                       console.error('🖼️  Profile image failed to load:', e.currentTarget.src);
-                      // Fallback to role icon if image fails to load
                       e.currentTarget.style.display = 'none';
                       e.currentTarget.nextElementSibling?.classList.remove('hidden');
                     }}
                   />
                 ) : null}
                 
-                {/* Default role icon - shown when no photo or photo fails to load */}
-                <div className={`w-full h-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-4xl ${
+                {/* Default role icon */}
+                <div className={`w-full h-full flex items-center justify-center text-5xl ${
                   (!user.profile_picture_url || user.profile_picture_url.trim() === '') && !photoPreview ? '' : 'hidden'
                 }`}>
                   {getRoleIcon(user.role)}
@@ -571,14 +567,14 @@ const ProfilePage: React.FC = () => {
               <IconButton
                 onClick={() => document.getElementById('photo-upload')?.click()}
                 icon={
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 }
                 variant="primary"
-                size="md"
-                className="absolute -bottom-2 -right-2 shadow-lg"
+                size="lg"
+                className="absolute -bottom-3 -right-3 shadow-xl border-2 border-slate-800"
                 tooltip="Upload Photo"
               />
               
@@ -591,17 +587,27 @@ const ProfilePage: React.FC = () => {
               />
             </div>
             
-            <div className="flex-1">
-              <h2 className="text-3xl font-bold text-white mb-2">
-                {user.first_name} {user.last_name}
+            {/* Profile Info */}
+            <div className="flex-1 min-w-0">
+              <h2 className="text-4xl font-bold text-white mb-3 bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
+                {user.first_name || 'Not'} {user.last_name || 'Set'}
               </h2>
-              <p className="text-lg text-slate-300 mb-1">{user.username}</p>
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-sm rounded-full border border-purple-500/30">
+              <p className="text-xl text-slate-300 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {user.username}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <span className="px-4 py-2 bg-gradient-to-r from-purple-500/20 to-purple-600/20 text-purple-300 text-sm font-medium rounded-2xl border border-purple-500/40 backdrop-blur-sm">
                   {getRoleDisplayName(user.role)}
                 </span>
-                <span className="px-3 py-1 bg-slate-600/20 text-slate-400 text-sm rounded-full border border-slate-600/30">
+                <span className="px-4 py-2 bg-gradient-to-r from-slate-600/20 to-slate-700/20 text-slate-300 text-sm font-medium rounded-2xl border border-slate-600/40 backdrop-blur-sm">
                   ID: {user.id}
+                </span>
+                <span className="px-4 py-2 bg-gradient-to-r from-green-500/20 to-green-600/20 text-green-300 text-sm font-medium rounded-2xl border border-green-500/40 backdrop-blur-sm flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  Active
                 </span>
               </div>
             </div>
@@ -609,39 +615,41 @@ const ProfilePage: React.FC = () => {
 
           {/* Photo Upload Section */}
           {selectedPhoto && (
-            <div className="mb-6 p-4 bg-slate-700/60 rounded-xl border border-slate-600/40">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="mt-6 p-6 bg-gradient-to-r from-slate-700/60 to-slate-800/60 rounded-2xl border border-slate-600/40 backdrop-blur-sm">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
                   <img 
                     src={photoPreview || ''} 
                     alt="Preview" 
-                    className="w-12 h-12 rounded-lg object-cover"
+                    className="w-16 h-16 rounded-xl object-cover border-2 border-slate-500/50"
                   />
                   <div>
-                    <p className="text-white font-medium">{selectedPhoto.name}</p>
+                    <p className="text-white font-medium text-lg">{selectedPhoto.name}</p>
                     <p className="text-sm text-slate-400">
                       {(selectedPhoto.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <Button
                     onClick={() => {
                       setSelectedPhoto(null);
                       setPhotoPreview(null);
                     }}
                     variant="secondary"
-                    size="sm"
+                    size="md"
+                    className="px-6"
                   >
                     Cancel
                   </Button>
                   <Button
                     onClick={handlePhotoUpload}
                     variant="primary"
-                    size="sm"
+                    size="md"
                     loading={photoUploading}
+                    className="px-6"
                     icon={
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                     }
@@ -655,346 +663,365 @@ const ProfilePage: React.FC = () => {
 
           {/* Success/Error Messages */}
           {profileSuccess && (
-            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl">
-              <p className="text-green-400 font-medium">Profile updated successfully!</p>
+            <div className="mt-6 p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl backdrop-blur-sm">
+              <p className="text-green-400 font-medium flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Profile updated successfully!
+              </p>
             </div>
           )}
           
           {profileErrors.general && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl">
-              <p className="text-red-400 font-medium">{profileErrors.general}</p>
+            <div className="mt-6 p-4 bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 rounded-2xl backdrop-blur-sm">
+              <p className="text-red-400 font-medium flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                {profileErrors.general}
+              </p>
             </div>
           )}
+        </div>
 
-          {/* Profile Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-700/60 rounded-xl p-6 border border-slate-600/40">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          {/* Left Column - Personal Info & Account Status */}
+          <div className="xl:col-span-2 space-y-8">
+            {/* Personal Information Card */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
                   Personal Information
                 </h3>
                 {!isEditingProfile && (
                   <Button
                     onClick={handleProfileEdit}
                     variant="primary"
-                    size="sm"
+                    size="md"
                     icon={
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     }
                   >
-                    Edit
+                    Edit Profile
                   </Button>
                 )}
               </div>
               
               {isEditingProfile ? (
-                <form onSubmit={handleProfileSubmit} className="space-y-4">
-                  <Input
-                    label="First Name"
-                    name="first_name"
-                    value={profileData.first_name}
-                    onChange={handleProfileChange}
-                    error={profileErrors.first_name}
-                    placeholder="Enter first name"
-                    fullWidth
-                  />
+                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="First Name"
+                      name="first_name"
+                      value={profileData.first_name}
+                      onChange={handleProfileChange}
+                      error={profileErrors.first_name}
+                      placeholder="Enter first name"
+                      fullWidth
+                    />
+                    
+                    <Input
+                      label="Last Name"
+                      name="last_name"
+                      value={profileData.last_name}
+                      onChange={handleProfileChange}
+                      error={profileErrors.last_name}
+                      placeholder="Enter last name"
+                      fullWidth
+                    />
+                  </div>
                   
-                  <Input
-                    label="Last Name"
-                    name="last_name"
-                    value={profileData.last_name}
-                    onChange={handleProfileChange}
-                    error={profileErrors.last_name}
-                    placeholder="Enter last name"
-                    fullWidth
-                  />
-                  
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-3 pt-4">
                     <Button
                       type="submit"
                       variant="success"
-                      size="md"
+                      size="lg"
                       loading={profileLoading}
+                      className="px-8"
                       icon={
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       }
                     >
-                      Save
+                      Save Changes
                     </Button>
                     <Button
                       type="button"
                       onClick={handleProfileCancel}
                       variant="secondary"
-                      size="md"
+                      size="lg"
+                      className="px-8"
                     >
                       Cancel
                     </Button>
                   </div>
                 </form>
               ) : (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm text-slate-400">First Name</label>
-                    <p className="text-white font-medium">{user.first_name || 'Not set'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="bg-slate-700/40 rounded-2xl p-6 border border-slate-600/30">
+                      <label className="text-sm text-slate-400 font-medium mb-2 block">First Name</label>
+                      <p className="text-white font-semibold text-lg">{user.first_name || 'Not set'}</p>
+                    </div>
+                    <div className="bg-slate-700/40 rounded-2xl p-6 border border-slate-600/30">
+                      <label className="text-sm text-slate-400 font-medium mb-2 block">Username</label>
+                      <p className="text-white font-semibold text-lg">{user.username}</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm text-slate-400">Last Name</label>
-                    <p className="text-white font-medium">{user.last_name || 'Not set'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-slate-400">Username</label>
-                    <p className="text-white font-medium">{user.username}</p>
+                  <div className="space-y-6">
+                    <div className="bg-slate-700/40 rounded-2xl p-6 border border-slate-600/30">
+                      <label className="text-sm text-slate-400 font-medium mb-2 block">Last Name</label>
+                      <p className="text-white font-semibold text-lg">{user.last_name || 'Not set'}</p>
+                    </div>
+                    <div className="bg-slate-700/40 rounded-2xl p-6 border border-slate-600/30">
+                      <label className="text-sm text-slate-400 font-medium mb-2 block">Email</label>
+                      <p className="text-white font-semibold text-lg">{user.username}</p>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="bg-slate-700/60 rounded-xl p-6 border border-slate-600/40">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Account Status
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-slate-400">Account Type</label>
-                  <p className="text-white font-medium">{getRoleDisplayName(user.role)}</p>
-                </div>
-                <div>
-                  <label className="text-sm text-slate-400">Account Status</label>
-                  <p className="text-green-400 font-medium flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    Active
+            {/* Security Settings Card */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  Security Settings
+                </h3>
+                <Button
+                  onClick={() => setShowPasswordForm(!showPasswordForm)}
+                  variant={showPasswordForm ? "secondary" : "primary"}
+                  size="md"
+                  icon={
+                    showPasswordForm ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )
+                  }
+                >
+                  {showPasswordForm ? 'Cancel' : 'Change Password'}
+                </Button>
+              </div>
+
+              {passwordSuccess && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-green-500/20 to-green-600/20 border border-green-500/30 rounded-2xl backdrop-blur-sm">
+                  <p className="text-green-400 text-sm flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Password changed successfully!
                   </p>
                 </div>
-                <div>
-                  <label className="text-sm text-slate-400">Member Since</label>
-                  <p className="text-white font-medium">October 2024</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Password Change Section */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              Security Settings
-            </h3>
-            <Button
-              onClick={() => setShowPasswordForm(!showPasswordForm)}
-              variant="secondary"
-              size="md"
-              icon={
-                showPasswordForm ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                )
-              }
-            >
-              {showPasswordForm ? 'Cancel' : 'Change Password'}
-            </Button>
-          </div>
-
-          {passwordSuccess && (
-            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-xl">
-              <p className="text-green-400 text-sm flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Password changed successfully!
-              </p>
-            </div>
-          )}
-
-          {showPasswordForm && (
-            <form onSubmit={handlePasswordSubmit} className="space-y-6">
-              {/* General Error Message */}
-              {passwordErrors.general && (
-                <div className="p-4 bg-red-500/20 border border-red-500/30 rounded-xl">
-                  <p className="text-red-400 text-sm">{passwordErrors.general}</p>
-                </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Current Password"
-                  name="current_password"
-                  type="password"
-                  value={passwordData.current_password}
-                  onChange={handlePasswordChange}
-                  error={passwordErrors.current_password}
-                  placeholder="Enter current password"
-                  showPasswordToggle={true}
-                  showPassword={showCurrentPassword}
-                  onPasswordToggle={() => setShowCurrentPassword(!showCurrentPassword)}
-                  fullWidth
-                />
+              {showPasswordForm ? (
+                <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                  {passwordErrors.general && (
+                    <div className="p-4 bg-gradient-to-r from-red-500/20 to-red-600/20 border border-red-500/30 rounded-2xl">
+                      <p className="text-red-400 text-sm">{passwordErrors.general}</p>
+                    </div>
+                  )}
 
-                <Input
-                  label="New Password"
-                  name="new_password"
-                  type="password"
-                  value={passwordData.new_password}
-                  onChange={handlePasswordChange}
-                  error={passwordErrors.new_password}
-                  placeholder="Enter new password"
-                  showPasswordToggle={true}
-                  showPassword={showNewPassword}
-                  onPasswordToggle={() => setShowNewPassword(!showNewPassword)}
-                  fullWidth
-                />
+                  <div className="grid grid-cols-1 gap-6">
+                    <Input
+                      label="Current Password"
+                      name="current_password"
+                      type="password"
+                      value={passwordData.current_password}
+                      onChange={handlePasswordChange}
+                      error={passwordErrors.current_password}
+                      placeholder="Enter current password"
+                      showPasswordToggle={true}
+                      showPassword={showCurrentPassword}
+                      onPasswordToggle={() => setShowCurrentPassword(!showCurrentPassword)}
+                      fullWidth
+                    />
 
-                <div className="md:col-span-2">
-                  <Input
-                    label="Confirm New Password"
-                    name="confirm_password"
-                    type="password"
-                    value={passwordData.confirm_password}
-                    onChange={handlePasswordChange}
-                    error={passwordErrors.confirm_password}
-                    placeholder="Confirm new password"
-                    showPasswordToggle={true}
-                    showPassword={showConfirmPassword}
-                    onPasswordToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-                    fullWidth
-                  />
-                </div>
-              </div>
+                    <Input
+                      label="New Password"
+                      name="new_password"
+                      type="password"
+                      value={passwordData.new_password}
+                      onChange={handlePasswordChange}
+                      error={passwordErrors.new_password}
+                      placeholder="Enter new password"
+                      showPasswordToggle={true}
+                      showPassword={showNewPassword}
+                      onPasswordToggle={() => setShowNewPassword(!showNewPassword)}
+                      fullWidth
+                    />
 
-              <div className="flex items-center justify-end space-x-3 pt-6 border-t border-slate-700">
-                <Button
-                  type="button"
-                  onClick={() => setShowPasswordForm(false)}
-                  variant="secondary"
-                  size="lg"
-                  disabled={passwordLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="danger"
-                  size="lg"
-                  loading={passwordLoading}
-                  icon={
+                    <Input
+                      label="Confirm New Password"
+                      name="confirm_password"
+                      type="password"
+                      value={passwordData.confirm_password}
+                      onChange={handlePasswordChange}
+                      error={passwordErrors.confirm_password}
+                      placeholder="Confirm new password"
+                      showPasswordToggle={true}
+                      showPassword={showConfirmPassword}
+                      onPasswordToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                      fullWidth
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-3 pt-6 border-t border-slate-700">
+                    <Button
+                      type="button"
+                      onClick={() => setShowPasswordForm(false)}
+                      variant="secondary"
+                      size="lg"
+                      disabled={passwordLoading}
+                      className="px-8"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="danger"
+                      size="lg"
+                      loading={passwordLoading}
+                      className="px-8"
+                      icon={
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      }
+                    >
+                      Update Password
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <div className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 rounded-2xl p-8 border border-slate-600/30 backdrop-blur-sm">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center">
+                      <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-lg">Password Security</h4>
+                      <p className="text-slate-400 text-sm">Last updated: October 2024</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-300 mb-6">
+                    Keep your account secure by regularly updating your password. Use a strong password with a mix of letters, numbers, and symbols.
+                  </p>
+                  <div className="flex items-center gap-2 text-sm text-slate-400">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
-                  }
-                >
-                  Update Password
-                </Button>
-              </div>
-            </form>
-          )}
-
-          {!showPasswordForm && (
-            <div className="bg-slate-700/60 rounded-xl p-6 border border-slate-600/40">
-              <div className="flex items-center gap-3 mb-3">
-                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <h4 className="font-semibold text-white">Password Security</h4>
-              </div>
-              <p className="text-sm text-slate-300 mb-4">
-                Keep your account secure by regularly updating your password. Use a strong password with a mix of letters, numbers, and symbols.
-              </p>
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span>Last updated: October 2024</span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Additional Information */}
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-xl">
-          <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            Additional Information
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-slate-700/60 rounded-xl p-6 border border-slate-600/40">
-              <h4 className="font-semibold text-white mb-4">System Information</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm text-slate-400">User ID</label>
-                  <p className="text-white font-medium">{user.id}</p>
+                    <span>Your password is securely encrypted</span>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm text-slate-400">Account Role</label>
-                  <p className="text-white font-medium">{getRoleDisplayName(user.role)}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Account Status & Quick Actions */}
+          <div className="space-y-8">
+            {/* Account Status Card */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+              <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
-                <div>
-                  <label className="text-sm text-slate-400">Profile Status</label>
-                  <p className="text-green-400 font-medium">Complete</p>
+                Account Status
+              </h3>
+              
+              <div className="space-y-6">
+                <div className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 rounded-2xl p-6 border border-slate-600/30">
+                  <label className="text-sm text-slate-400 font-medium mb-2 block">Account Type</label>
+                  <p className="text-white font-semibold text-lg">{getRoleDisplayName(user.role)}</p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 rounded-2xl p-6 border border-slate-600/30">
+                  <label className="text-sm text-slate-400 font-medium mb-2 block">Account Status</label>
+                  <p className="text-green-400 font-semibold text-lg flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    Active
+                  </p>
+                </div>
+                
+                <div className="bg-gradient-to-r from-slate-700/40 to-slate-800/40 rounded-2xl p-6 border border-slate-600/30">
+                  <label className="text-sm text-slate-400 font-medium mb-2 block">Member Since</label>
+                  <p className="text-white font-semibold text-lg">October 2024</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-700/60 rounded-xl p-6 border border-slate-600/40">
-              <h4 className="font-semibold text-white mb-4">Account Actions</h4>
-              <div className="space-y-3">
+            {/* Quick Actions Card */}
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
+              <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                Quick Actions
+              </h3>
+              
+              <div className="space-y-4">
                 <Button
                   variant="ghost"
-                  size="md"
+                  size="lg"
                   fullWidth
-                  className="justify-start"
+                  className="justify-start py-4 px-6 rounded-2xl border border-slate-600/30 hover:border-slate-500/50 transition-all duration-200"
                   icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   }
                 >
                   Download Account Data
                 </Button>
+                
                 <Button
                   variant="ghost"
-                  size="md"
+                  size="lg"
                   fullWidth
-                  className="justify-start"
+                  className="justify-start py-4 px-6 rounded-2xl border border-slate-600/30 hover:border-slate-500/50 transition-all duration-200"
                   icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   }
                 >
                   Privacy Settings
                 </Button>
+                
                 <Button
                   variant="ghost"
-                  size="md"
+                  size="lg"
                   fullWidth
-                  className="justify-start"
+                  className="justify-start py-4 px-6 rounded-2xl border border-slate-600/30 hover:border-slate-500/50 transition-all duration-200"
                   icon={
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z" />
                     </svg>
                   }

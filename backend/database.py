@@ -7,8 +7,11 @@ from sqlalchemy.orm import sessionmaker
 # Load environment variables from .env file
 load_dotenv()
 
-# Get database URL from environment variable
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:Jacob26@localhost/postgres")
+# Get database URL from environment variable (with default fallback)
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:allen14@localhost/classtrack_db"
+)
 
 # Create SQLAlchemy engine
 engine = create_engine(DATABASE_URL)
