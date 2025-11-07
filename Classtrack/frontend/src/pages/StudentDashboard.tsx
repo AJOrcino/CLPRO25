@@ -248,6 +248,11 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
+  // VIEW PROFILE FUNCTION - ADDED
+  const handleViewProfile = () => {
+    navigate("/profile");
+  };
+
   useEffect(() => {
     // Check authentication and role
     const token = localStorage.getItem("authToken");
@@ -380,12 +385,12 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
-  // FIXED: Fallback assignments with EXACT names from your screenshot
+  // FIXED: Fallback assignments with EXACT names from your screenshot - NOW 4 ASSIGNMENTS
   const getFallbackAssignments = (): Assignment[] => {
     return [
       {
         id: 1,
-        name: "Hello world",
+        name: "CPP",
         description: "CPP programming basics",
         class_id: 1,
         creator_id: 1,
@@ -396,7 +401,7 @@ const StudentDashboard: React.FC = () => {
       },
       {
         id: 2,
-        name: "LING",
+        name: "Angela",
         description: "Linguistics Assignment",
         class_id: 2,
         creator_id: 1,
@@ -407,19 +412,30 @@ const StudentDashboard: React.FC = () => {
       },
       {
         id: 3,
-        name: "Aljon&Aljona",
+        name: "Jen",
         description: "Web Development Project",
         class_id: 3,
         creator_id: 1,
-        created_at: "2025-11-01T01:04:00Z",
-        class_name: "LOVE-25",
-        class_code: "LOVE-25",
+        created_at: "2025-10-31T17:04:00Z",
+        class_name: "LOVE-23",
+        class_code: "LOVE-23",
         class_subject: "Web Development"
       },
+      {
+        id: 4,
+        name: "Broken",
+        description: "System Analysis Task",
+        class_id: 4,
+        creator_id: 1,
+        created_at: "2025-11-04T15:52:00Z",
+        class_name: "KUPAL-22",
+        class_code: "KUPAL-22",
+        class_subject: "System Analysis"
+      }
     ];
   };
 
-  // Fallback classes function
+  // Fallback classes function - UPDATED FOR 4 CLASSES
   const getFallbackClasses = (): Class[] => {
     return [
       {
@@ -438,11 +454,18 @@ const StudentDashboard: React.FC = () => {
       },
       {
         id: 3,
-        name: "LOVE-25",
-        code: "LOVE-25",
+        name: "LOVE-23",
+        code: "LOVE-23",
         teacher_id: 1,
         subject: "Web Development"
       },
+      {
+        id: 4,
+        name: "KUPAL-22",
+        code: "KUPAL-22",
+        teacher_id: 1,
+        subject: "System Analysis"
+      }
     ];
   };
 
@@ -1048,8 +1071,9 @@ const StudentDashboard: React.FC = () => {
                     </span>
                   </div>
                 </div>
+                {/* VIEW PROFILE BUTTON - ADDED */}
                 <button
-                  onClick={() => navigate("/profile")}
+                  onClick={handleViewProfile}
                   className="px-4 py-2 bg-slate-700/80 hover:bg-slate-600/80 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl border border-slate-600/50 flex items-center gap-2 cursor-pointer"
                   aria-label="View and edit user profile"
                 >
@@ -1074,12 +1098,12 @@ const StudentDashboard: React.FC = () => {
 
             {/* Dashboard Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* Schedule Section */}
+              {/* Schedule Section - WITH SCROLLING */}
               <div className="lg:col-span-1">
-                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-fit">
+                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-[400px] flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-5 h-5 text-white"
                           fill="none"
@@ -1107,10 +1131,10 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                     {loadingStates.schedule ? (
                       <div className="space-y-3">
-                        {[1, 2].map((i) => (
+                        {[1, 2, 3].map((i) => (
                           <div key={i} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
                             <div className="flex items-start space-x-3">
                               <SkeletonLoader className="w-10 h-10 rounded-xl" />
@@ -1130,7 +1154,7 @@ const StudentDashboard: React.FC = () => {
                           className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
                         >
                           <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 bg-slate-500/60 rounded-xl flex items-center justify-center text-lg shadow-sm">
+                            <div className="w-10 h-10 bg-blue-500/60 rounded-xl flex items-center justify-center text-lg shadow-sm">
                               <svg
                                 className="w-6 h-6 text-white"
                                 fill="none"
@@ -1179,12 +1203,12 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Announcements Section */}
+              {/* Announcements Section - WITH SCROLLING */}
               <div className="lg:col-span-1">
-                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-fit">
+                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-[400px] flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-5 h-5 text-white"
                           fill="none"
@@ -1214,10 +1238,10 @@ const StudentDashboard: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="space-y-3">
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                     {loadingStates.announcements ? (
                       <div className="space-y-3">
-                        {[1, 2].map((i) => (
+                        {[1, 2, 3].map((i) => (
                           <div key={i} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
                             <div className="flex items-start space-x-3">
                               <SkeletonLoader className="w-3 h-3 rounded-full mt-2" />
@@ -1242,7 +1266,7 @@ const StudentDashboard: React.FC = () => {
                           }`}
                         >
                           <div className="flex items-start space-x-3">
-                            <div className={`w-3 h-3 rounded-full mt-2 ${announcement.is_urgent ? "bg-orange-400" : "bg-slate-400"}`}></div>
+                            <div className={`w-3 h-3 rounded-full mt-2 ${announcement.is_urgent ? "bg-orange-400" : "bg-blue-400"}`}></div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between mb-2">
                                 <h4 className="font-semibold text-white text-sm leading-tight">
@@ -1276,12 +1300,12 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Assignments Section - FIXED: NOW SHOWS EXACT NAMES FROM SCREENSHOT */}
+              {/* Assignments Section - FIXED: SCROLLABLE WITHOUT VIEW ALL BUTTON */}
               <div className="lg:col-span-2 xl:col-span-1">
-                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
+                <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-[400px] flex flex-col">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-5 h-5 text-white"
                           fill="none"
@@ -1309,18 +1333,32 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mb-4 bg-blue-900/20 border border-blue-700/30 rounded-xl p-4">
-                    <div className="flex items-center">
-                      <svg className="w-5 h-5 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <p className="text-blue-300 text-sm">
-                        You have {assignmentStats.total} assigned tasks. Track your progress and deadlines.
-                      </p>
+                  {/* Assignment Statistics - Compact Version */}
+                  <div className="mb-4 bg-slate-600/60 rounded-xl p-3 border border-slate-500/40 shadow-sm">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-lg font-bold text-white">
+                          {assignmentStats.available}
+                        </p>
+                        <p className="text-xs text-slate-300">Available</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-white">
+                          {assignmentStats.total}
+                        </p>
+                        <p className="text-xs text-slate-300">Total</p>
+                      </div>
+                      <div>
+                        <p className="text-lg font-bold text-white">
+                          {assignmentStats.submitted}
+                        </p>
+                        <p className="text-xs text-slate-300">Submitted</p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-3">
+                  {/* Scrollable Assignments Area - NO VIEW ALL BUTTON */}
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
                     {loadingStates.assignments ? (
                       <div className="space-y-3">
                         {[1, 2, 3].map((i) => (
@@ -1394,7 +1432,7 @@ const StudentDashboard: React.FC = () => {
                               className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer ${
                                 isSubmitted
                                   ? "bg-gray-500/50 text-gray-300 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                                  : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
                               }`}
                             >
                               {isSubmitted ? 'Already Submitted' : 'Submit Assignment'}
@@ -1411,30 +1449,6 @@ const StudentDashboard: React.FC = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Assignment Statistics */}
-                  <div className="mt-6 bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 shadow-sm">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <p className="text-xl font-bold text-white">
-                          {assignmentStats.available}
-                        </p>
-                        <p className="text-xs text-slate-300">Available</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-white">
-                          {assignmentStats.total}
-                        </p>
-                        <p className="text-xs text-slate-300">Total</p>
-                      </div>
-                      <div>
-                        <p className="text-xl font-bold text-white">
-                          {assignmentStats.submitted}
-                        </p>
-                        <p className="text-xs text-slate-300">Submitted</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1442,7 +1456,7 @@ const StudentDashboard: React.FC = () => {
             {/* Quick Actions */}
             <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
               <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
                   <svg
                     className="w-4 h-4 text-white"
                     fill="none"
@@ -2000,7 +2014,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> 
       )}
     </div>
   );

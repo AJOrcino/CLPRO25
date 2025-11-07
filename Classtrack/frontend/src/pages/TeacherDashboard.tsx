@@ -588,12 +588,13 @@ const TeacherDashboard: React.FC = () => {
 
               {/* Dashboard Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {/* My Classes & Assignments */}
+                {/* Left Column - My Classes & Recent Assignments (SEPARATED) */}
                 <div className="lg:col-span-1 space-y-6">
+                  {/* My Classes Card - SEPARATE */}
                   <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
                           <svg
                             className="w-5 h-5 text-white"
                             fill="none"
@@ -613,38 +614,30 @@ const TeacherDashboard: React.FC = () => {
                         </h3>
                       </div>
                       <button
-                        onClick={() => navigate("/teacher/assignments")}
-                        className="px-4 py-2 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer"
+                        onClick={() => navigate("/teacher/classes")}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer"
                         style={{ cursor: 'pointer' }}
                       >
                         Create New
                       </button>
                     </div>
 
-                    {/* Classes List */}
-                    <div className="space-y-3 mb-6">
+                    {/* Classes List - NO SCROLLING */}
+                    <div className="space-y-3">
                       {loadingStates.classes ? (
                         <div className="space-y-3">
-                          <div className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
-                            <div className="flex items-center justify-between mb-3">
-                              <SkeletonLoader className="h-4 w-3/4" />
-                              <SkeletonLoader className="w-16 h-6 rounded-full" />
+                          {[1, 2, 3].map((item) => (
+                            <div key={item} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
+                              <div className="flex items-center justify-between mb-3">
+                                <SkeletonLoader className="h-4 w-3/4" />
+                                <SkeletonLoader className="w-16 h-6 rounded-full" />
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <SkeletonLoader className="h-3 w-1/2" />
+                                <SkeletonLoader className="h-3 w-12" />
+                              </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                              <SkeletonLoader className="h-3 w-1/2" />
-                              <SkeletonLoader className="h-3 w-12" />
-                            </div>
-                          </div>
-                          <div className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
-                            <div className="flex items-center justify-between mb-3">
-                              <SkeletonLoader className="h-4 w-3/4" />
-                              <SkeletonLoader className="w-16 h-6 rounded-full" />
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <SkeletonLoader className="h-3 w-1/2" />
-                              <SkeletonLoader className="h-3 w-12" />
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       ) : classes.length === 0 ? (
                         <div className="text-center py-8">
@@ -677,7 +670,7 @@ const TeacherDashboard: React.FC = () => {
                           </button>
                         </div>
                       ) : (
-                        classes.map((classItem) => (
+                        classes.slice(0, 4).map((classItem) => (
                           <div
                             key={classItem.id}
                             className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
@@ -708,13 +701,15 @@ const TeacherDashboard: React.FC = () => {
                         ))
                       )}
                     </div>
+                  </div>
 
-                    {/* Recent Assignments */}
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-lg font-bold text-white flex items-center space-x-2">
+                  {/* Recent Assignments Card - SEPARATE */}
+                  <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md">
                           <svg
-                            className="w-5 h-5 text-blue-400"
+                            className="w-5 h-5 text-white"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -726,72 +721,76 @@ const TeacherDashboard: React.FC = () => {
                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                           </svg>
-                          <span>Recent Assignments</span>
-                        </h4>
-                        <button
-                          onClick={() => navigate("/teacher/assignments")}
-                          className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors duration-200 cursor-pointer"
-                          style={{ cursor: 'pointer' }}
-                        >
-                          View All →
-                        </button>
+                        </div>
+                        <h3 className="text-lg font-bold text-white">
+                          Recent Assignments
+                        </h3>
                       </div>
-                      <div className="space-y-3">
-                        {assignments.length === 0 ? (
-                          <div className="text-center py-6">
-                            <div className="w-12 h-12 bg-slate-700/60 rounded-xl flex items-center justify-center mx-auto mb-3">
-                              <svg
-                                className="w-6 h-6 text-slate-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
-                            </div>
-                            <h5 className="font-medium text-white text-sm mb-1">
-                              No Assignments Yet
-                            </h5>
-                            <p className="text-xs text-slate-400">
-                              Create your first assignment to get started
-                            </p>
-                          </div>
-                        ) : (
-                          assignments.slice(0, 3).map((assignment) => (
-                            <div
-                              key={assignment.id}
-                              className="bg-slate-600/60 rounded-xl p-3 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
-                              style={{ cursor: 'pointer' }}
+                      <button
+                        onClick={() => navigate("/teacher/assignments")}
+                        className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                      >
+                        Create New
+                      </button>
+                    </div>
+
+                    {/* Assignments List - NO SCROLLING */}
+                    <div className="space-y-3">
+                      {assignments.length === 0 ? (
+                        <div className="text-center py-6">
+                          <div className="w-12 h-12 bg-slate-700/60 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg
+                              className="w-6 h-6 text-slate-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <h5 className="font-medium text-white text-sm truncate">
-                                    {assignment.name}
-                                  </h5>
-                                  <p className="text-xs text-slate-300">
-                                    {formatDate(assignment.created_at)}
-                                  </p>
-                                </div>
-                                <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30 ml-2 flex-shrink-0">
-                                  Active
-                                </span>
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <h5 className="font-medium text-white text-sm mb-1">
+                            No Assignments Yet
+                          </h5>
+                          <p className="text-xs text-slate-400">
+                            Create your first assignment to get started
+                          </p>
+                        </div>
+                      ) : (
+                        assignments.slice(0, 4).map((assignment) => (
+                          <div
+                            key={assignment.id}
+                            className="bg-slate-600/60 rounded-xl p-3 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-medium text-white text-sm truncate">
+                                  {assignment.name}
+                                </h5>
+                                <p className="text-xs text-slate-300">
+                                  {formatDate(assignment.created_at)}
+                                </p>
                               </div>
+                              <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30 ml-2 flex-shrink-0">
+                                Active
+                              </span>
                             </div>
-                          ))
-                        )}
-                      </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
 
-                  {/* Recent Activity */}
+                  {/* Recent Activity - NO SCROLLING */}
                   <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
                     <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-4 h-4 text-white"
                           fill="none"
@@ -912,12 +911,12 @@ const TeacherDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Student Engagement Insights */}
+                {/* Right Column - Student Engagement Insights & Others */}
                 <div className="lg:col-span-2 space-y-6">
                   <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
                           <svg
                             className="w-5 h-5 text-white"
                             fill="none"
@@ -944,8 +943,8 @@ const TeacherDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Engagement Metrics */}
-                    <div className="space-y-4">
+                    {/* Engagement Metrics - WITH SCROLLING */}
+                    <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-500 scrollbar-track-slate-700/50 pr-2">
                       {engagementInsights.map((insight) => (
                         <div
                           key={insight.id}
@@ -999,7 +998,7 @@ const TeacherDashboard: React.FC = () => {
                     {/* AI Insights Summary */}
                     <div className="mt-6 bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 shadow-sm cursor-pointer" style={{ cursor: 'pointer' }}>
                       <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
                           <svg
                             className="w-4 h-4 text-white"
                             fill="none"
@@ -1029,7 +1028,7 @@ const TeacherDashboard: React.FC = () => {
                   {/* Quick Actions */}
                   <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
                     <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-slate-500 to-slate-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-4 h-4 text-white"
                           fill="none"
@@ -1058,7 +1057,7 @@ const TeacherDashboard: React.FC = () => {
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                          >
+                            >
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -1087,14 +1086,14 @@ const TeacherDashboard: React.FC = () => {
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
                         </div>
                         <div className="text-left">
                           <p className="text-white font-semibold text-sm">
@@ -1116,14 +1115,14 @@ const TeacherDashboard: React.FC = () => {
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              />
+                            </svg>
                         </div>
                         <div className="text-left">
                           <p className="text-white font-semibold text-sm">
@@ -1137,10 +1136,10 @@ const TeacherDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Teaching Resources Section - IMPROVED DESIGN */}
+                  {/* Teaching Resources Section */}
                   <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg">
                     <h3 className="text-lg font-bold text-white mb-6 flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+                      <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-md">
                         <svg
                           className="w-4 h-4 text-white"
                           fill="none"
