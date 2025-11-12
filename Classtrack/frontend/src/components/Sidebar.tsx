@@ -12,6 +12,116 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
   const location = useLocation();
   const { user } = useUser();
 
+  // Helper function to construct full image URL
+  const getProfileImageUrl = (url: string | null): string => {
+    if (!url || url.trim() === "") {
+      return "";
+    }
+
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      return url;
+    }
+
+    const baseUrl = "http://localhost:8000";
+    let constructedUrl = "";
+
+    if (url.startsWith("/")) {
+      constructedUrl = `${baseUrl}${url}`;
+    } else if (
+      url.startsWith("uploads/") ||
+      url.startsWith("photos/") ||
+      url.startsWith("static/")
+    ) {
+      constructedUrl = `${baseUrl}/${url}`;
+    } else {
+      constructedUrl = `${baseUrl}/uploads/${url}`;
+    }
+
+    return constructedUrl;
+  };
+
+  // Helper function to get role icon
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return (
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
+          </svg>
+        );
+      case "teacher":
+        return (
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            />
+          </svg>
+        );
+      case "student":
+        return (
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            />
+          </svg>
+        );
+      default:
+        return (
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+        );
+    }
+  };
+
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -429,39 +539,6 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
 
   const branding = getBranding();
 
-  // Get role-specific avatar icon
-  const getRoleAvatar = () => {
-    let userRole = user?.role || localStorage.getItem("userRole") || "student";
-
-    // Strict role validation - only allow valid roles
-    const validRoles = ["admin", "teacher", "student"];
-    if (!validRoles.includes(userRole)) {
-      console.warn(
-        `Invalid user role detected in avatar: ${userRole}. Defaulting to student.`
-      );
-      userRole = "student";
-    }
-
-    switch (userRole) {
-      case "admin":
-        return (
-          <span className="text-white font-bold text-sm">A</span>
-        );
-      case "teacher":
-        return (
-          <span className="text-white font-bold text-sm">T</span>
-        );
-      case "student":
-        return (
-          <span className="text-white font-bold text-sm">S</span>
-        );
-      default:
-        return (
-          <span className="text-white font-bold text-sm">U</span>
-        );
-    }
-  };
-
   // Get role-specific avatar gradient
   const getRoleAvatarGradient = () => {
     let userRole = user?.role || localStorage.getItem("userRole") || "student";
@@ -572,10 +649,41 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
         <div className="p-3 border-t border-slate-700/50 mt-auto">
           {/* User Info */}
           <div className="flex items-center space-x-3 mb-3">
-            <div
-              className={`w-10 h-10 bg-gradient-to-br ${getRoleAvatarGradient()} rounded-xl flex items-center justify-center shadow-lg flex-shrink-0`}
-            >
-              {getRoleAvatar()}
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-lg flex-shrink-0">
+              {user?.profile_picture_url &&
+              user.profile_picture_url.trim() !== "" ? (
+                <img
+                  src={getProfileImageUrl(user.profile_picture_url)}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  onLoad={() => {
+                    console.log(
+                      "🖼️ Profile image loaded successfully in sidebar"
+                    );
+                  }}
+                  onError={(e) => {
+                    console.error(
+                      "🖼️ Profile image failed to load in sidebar:",
+                      e.currentTarget.src
+                    );
+                    e.currentTarget.style.display = "none";
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      "hidden"
+                    );
+                  }}
+                />
+              ) : null}
+
+              <div
+                className={`w-full h-full bg-gradient-to-br ${getRoleAvatarGradient()} flex items-center justify-center ${
+                  !user?.profile_picture_url ||
+                  user.profile_picture_url.trim() === ""
+                    ? ""
+                    : "hidden"
+                }`}
+              >
+                {getRoleIcon(user?.role || "teacher")}
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">
@@ -612,9 +720,7 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen }) => {
                 />
               </svg>
             </div>
-            <span className="ml-3 text-sm font-medium">
-              Logout
-            </span>
+            <span className="ml-3 text-sm font-medium">Logout</span>
           </button>
         </div>
       </div>

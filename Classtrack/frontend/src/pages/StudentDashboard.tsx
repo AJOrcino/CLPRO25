@@ -41,7 +41,11 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('🚨 API Response Error:', error.response?.status, error.message);
+    console.error(
+      "🚨 API Response Error:",
+      error.response?.status,
+      error.message
+    );
     return Promise.reject(error);
   }
 );
@@ -108,11 +112,11 @@ const StudentDashboard: React.FC = () => {
   const { user } = useUser();
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  
+
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [classes, setClasses] = useState<Class[]>([]);
-  
+
   const [loadingStates, setLoadingStates] = useState({
     assignments: true,
     schedule: true,
@@ -120,16 +124,19 @@ const StudentDashboard: React.FC = () => {
     classes: true,
     submissions: true,
   });
-  
+
   const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
 
   // Room Report Modal state
   const [showRoomReportModal, setShowRoomReportModal] = useState(false);
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
-  const [reportFormErrors, setReportFormErrors] = useState<{ [key: string]: string }>({});
+  const [reportFormErrors, setReportFormErrors] = useState<{
+    [key: string]: string;
+  }>({});
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
 
   // Room report form state
@@ -149,32 +156,78 @@ const StudentDashboard: React.FC = () => {
   const reportTextRef = useRef<HTMLTextAreaElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  // Scroll indicators state
+  const [showScheduleScrollIndicator, setShowScheduleScrollIndicator] = useState(true);
+  const [showAnnouncementsScrollIndicator, setShowAnnouncementsScrollIndicator] = useState(true);
+  const [showAssignmentsScrollIndicator, setShowAssignmentsScrollIndicator] = useState(true);
+
+  // Scroll refs
+  const scheduleScrollRef = useRef<HTMLDivElement>(null);
+  const announcementsScrollRef = useRef<HTMLDivElement>(null);
+  const assignmentsScrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll handlers
+  const handleScheduleScroll = () => {
+    if (scheduleScrollRef.current) {
+      const { scrollTop } = scheduleScrollRef.current;
+      if (scrollTop > 10) {
+        setShowScheduleScrollIndicator(false);
+      } else {
+        setShowScheduleScrollIndicator(true);
+      }
+    }
+  };
+
+  const handleAnnouncementsScroll = () => {
+    if (announcementsScrollRef.current) {
+      const { scrollTop } = announcementsScrollRef.current;
+      if (scrollTop > 10) {
+        setShowAnnouncementsScrollIndicator(false);
+      } else {
+        setShowAnnouncementsScrollIndicator(true);
+      }
+    }
+  };
+
+  const handleAssignmentsScroll = () => {
+    if (assignmentsScrollRef.current) {
+      const { scrollTop } = assignmentsScrollRef.current;
+      if (scrollTop > 10) {
+        setShowAssignmentsScrollIndicator(false);
+      } else {
+        setShowAssignmentsScrollIndicator(true);
+      }
+    }
+  };
+
   // Real-time assignment statistics calculation
   const assignmentStats = {
     total: assignments.length,
     submitted: submissions.length,
-    available: assignments.length - submissions.length
+    available: assignments.length - submissions.length,
   };
 
   // Helper function to check if assignment is submitted
   const isAssignmentSubmitted = (assignmentId: number): boolean => {
-    return submissions.some(submission => submission.assignment_id === assignmentId);
+    return submissions.some(
+      (submission) => submission.assignment_id === assignmentId
+    );
   };
 
   // Helper function to get class information for assignment
   const getClassInfoForAssignment = (classId: number) => {
-    const classInfo = classes.find(c => c.id === classId);
+    const classInfo = classes.find((c) => c.id === classId);
     if (classInfo) {
       return {
         name: classInfo.name,
         code: classInfo.code,
-        subject: classInfo.subject || classInfo.name
+        subject: classInfo.subject || classInfo.name,
       };
     }
     return {
       name: "Unknown Class",
       code: "UNKNOWN",
-      subject: "Unknown Subject"
+      subject: "Unknown Subject",
     };
   };
 
@@ -211,28 +264,78 @@ const StudentDashboard: React.FC = () => {
     switch (role) {
       case "admin":
         return (
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            />
           </svg>
         );
       case "teacher":
         return (
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            />
           </svg>
         );
       case "student":
         return (
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l9-5-9-5-9 5 9 5z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"
+            />
           </svg>
         );
       default:
         return (
-          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          <svg
+            className="w-6 h-6 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
           </svg>
         );
     }
@@ -289,23 +392,24 @@ const StudentDashboard: React.FC = () => {
     try {
       setLoadingStates((prev) => ({ ...prev, classes: true }));
       console.log("📚 Loading classes for student...");
-      
+
       let classesData: Class[] = [];
-      
+
       try {
         const response = await apiClient.get("/classes/student", {
-          validateStatus: (status) => status < 500
+          validateStatus: (status) => status < 500,
         });
-        
+
         console.log("✅ Classes API response:", response.data);
-        
+
         if (response.status === 200 && Array.isArray(response.data)) {
           classesData = response.data.map((classItem: any) => ({
             id: classItem.id,
-            name: classItem.name || classItem.subject || `Class ${classItem.code}`,
+            name:
+              classItem.name || classItem.subject || `Class ${classItem.code}`,
             code: classItem.code,
             teacher_id: classItem.teacher_id,
-            subject: classItem.subject || classItem.name
+            subject: classItem.subject || classItem.name,
           }));
         } else {
           // If API returns empty or error, use fallback
@@ -315,7 +419,7 @@ const StudentDashboard: React.FC = () => {
         console.warn("⚠️ Classes API failed, using fallback data");
         classesData = getFallbackClasses();
       }
-      
+
       setClasses(classesData);
       return classesData;
     } catch (error: any) {
@@ -333,22 +437,22 @@ const StudentDashboard: React.FC = () => {
     try {
       setLoadingStates((prev) => ({ ...prev, assignments: true }));
       console.log("📚 Loading assignments for student...");
-      
+
       let assignmentsData: Assignment[] = [];
-      
+
       try {
-        const response = await apiClient.get('/assignments/student', {
-          validateStatus: (status) => status < 500
+        const response = await apiClient.get("/assignments/student", {
+          validateStatus: (status) => status < 500,
         });
-        
-        console.log('✅ Assignments API response status:', response.status);
-        console.log('✅ Assignments raw data:', response.data);
-        
+
+        console.log("✅ Assignments API response status:", response.status);
+        console.log("✅ Assignments raw data:", response.data);
+
         if (response.status === 200 && Array.isArray(response.data)) {
           assignmentsData = response.data.map((assignment: any) => {
             // Get class information from classes state
             const classInfo = getClassInfoForAssignment(assignment.class_id);
-            
+
             return {
               id: assignment.id,
               name: assignment.name,
@@ -358,25 +462,26 @@ const StudentDashboard: React.FC = () => {
               created_at: assignment.created_at,
               class_name: classInfo.name,
               class_code: classInfo.code,
-              class_subject: classInfo.subject
+              class_subject: classInfo.subject,
             };
           });
         } else {
-          console.warn('⚠️ Assignments API returned non-200 status, using fallback');
+          console.warn(
+            "⚠️ Assignments API returned non-200 status, using fallback"
+          );
           assignmentsData = getFallbackAssignments();
         }
-        
       } catch (apiError: any) {
-        console.warn('⚠️ API call failed:', apiError.message);
+        console.warn("⚠️ API call failed:", apiError.message);
         assignmentsData = getFallbackAssignments();
       }
 
-      console.log('📝 Final assignments with class info:', assignmentsData);
+      console.log("📝 Final assignments with class info:", assignmentsData);
       setAssignments(assignmentsData);
-      
+
       return assignmentsData;
     } catch (error: any) {
-      console.error('❌ Error loading assignments:', error);
+      console.error("❌ Error loading assignments:", error);
       const fallbackData = getFallbackAssignments();
       setAssignments(fallbackData);
       return fallbackData;
@@ -397,7 +502,7 @@ const StudentDashboard: React.FC = () => {
         created_at: "2025-10-31T16:46:00Z",
         class_name: "IT-12",
         class_code: "IT-12",
-        class_subject: "Programming Fundamentals"
+        class_subject: "Programming Fundamentals",
       },
       {
         id: 2,
@@ -408,7 +513,7 @@ const StudentDashboard: React.FC = () => {
         created_at: "2025-10-31T16:46:00Z",
         class_name: "ML-10",
         class_code: "ML-10",
-        class_subject: "Machine Learning"
+        class_subject: "Machine Learning",
       },
       {
         id: 3,
@@ -419,7 +524,7 @@ const StudentDashboard: React.FC = () => {
         created_at: "2025-10-31T17:04:00Z",
         class_name: "LOVE-23",
         class_code: "LOVE-23",
-        class_subject: "Web Development"
+        class_subject: "Web Development",
       },
       {
         id: 4,
@@ -430,8 +535,8 @@ const StudentDashboard: React.FC = () => {
         created_at: "2025-11-04T15:52:00Z",
         class_name: "KUPAL-22",
         class_code: "KUPAL-22",
-        class_subject: "System Analysis"
-      }
+        class_subject: "System Analysis",
+      },
     ];
   };
 
@@ -443,29 +548,29 @@ const StudentDashboard: React.FC = () => {
         name: "IT-12",
         code: "IT-12",
         teacher_id: 1,
-        subject: "Programming Fundamentals"
+        subject: "Programming Fundamentals",
       },
       {
         id: 2,
         name: "ML-10",
         code: "ML-10",
         teacher_id: 1,
-        subject: "Machine Learning"
+        subject: "Machine Learning",
       },
       {
         id: 3,
         name: "LOVE-23",
         code: "LOVE-23",
         teacher_id: 1,
-        subject: "Web Development"
+        subject: "Web Development",
       },
       {
         id: 4,
         name: "KUPAL-22",
         code: "KUPAL-22",
         teacher_id: 1,
-        subject: "System Analysis"
-      }
+        subject: "System Analysis",
+      },
     ];
   };
 
@@ -475,12 +580,12 @@ const StudentDashboard: React.FC = () => {
 
       if (user?.role === "student") {
         console.log("📚 Loading submissions for student...");
-        
+
         let submissionsData: Submission[] = [];
-        
+
         try {
           const response = await apiClient.get("/submissions/me", {
-            validateStatus: (status) => status < 500
+            validateStatus: (status) => status < 500,
           });
           console.log("✅ Submissions response:", response.data);
           submissionsData = Array.isArray(response.data) ? response.data : [];
@@ -488,7 +593,7 @@ const StudentDashboard: React.FC = () => {
           console.warn("⚠️ Submissions API failed, using empty array");
           submissionsData = [];
         }
-        
+
         setSubmissions(submissionsData);
       } else {
         setSubmissions([]);
@@ -530,46 +635,57 @@ const StudentDashboard: React.FC = () => {
   // Real-time sync
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'assignments_updated') {
-        console.log('🔄 Storage change detected, reloading assignments...');
+      if (e.key === "assignments_updated") {
+        console.log("🔄 Storage change detected, reloading assignments...");
         loadStudentAssignments();
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     const refreshInterval = setInterval(() => {
-      console.log('🔄 Student: Periodic assignment refresh');
+      console.log("🔄 Student: Periodic assignment refresh");
       loadStudentAssignments();
     }, 10000);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       clearInterval(refreshInterval);
     };
   }, []);
 
+  // FIXED: Time formatting functions to handle AM/PM correctly
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      const date = new Date(dateString);
+      // Add timezone offset to convert to local time
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return localDate.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
       });
     } catch (error) {
-      return 'Recent';
+      return "Recent";
     }
   };
 
   const formatTime = (dateTimeString: string) => {
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+    try {
+      const date = new Date(dateTimeString);
+      // Add timezone offset to convert to local time
+      const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+      return localDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      });
+    } catch (error) {
+      return "Invalid time";
+    }
   };
 
   const getRoomStatusColor = (status: string) => {
@@ -618,10 +734,12 @@ const StudentDashboard: React.FC = () => {
 
   const handleSubmitAssignment = (assignment: Assignment) => {
     if (isAssignmentSubmitted(assignment.id)) {
-      alert("This assignment has already been submitted. You cannot submit it again.");
+      alert(
+        "This assignment has already been submitted. You cannot submit it again."
+      );
       return;
     }
-    
+
     setSelectedAssignment(assignment);
     setShowSubmitModal(true);
     setFormErrors({});
@@ -669,18 +787,18 @@ const StudentDashboard: React.FC = () => {
       console.log("Submitting assignment with data:", submissionData);
 
       let newSubmission: Submission;
-      
+
       try {
         const response = await apiClient.post("/submissions", submissionData);
         console.log("✅ Submission successful via API:", response.data);
-        
+
         newSubmission = {
           id: response.data.id || Date.now(),
           assignment_id: selectedAssignment.id,
           student_id: parseInt(user.id.toString()),
           submitted_at: new Date().toISOString(),
           time_spent_minutes: parseInt(timeSpentRef.current?.value || "0"),
-          status: "submitted"
+          status: "submitted",
         };
       } catch (apiError: any) {
         console.warn("⚠️ API submission failed, creating local submission");
@@ -690,17 +808,16 @@ const StudentDashboard: React.FC = () => {
           student_id: parseInt(user.id.toString()),
           submitted_at: new Date().toISOString(),
           time_spent_minutes: parseInt(timeSpentRef.current?.value || "0"),
-          status: "submitted"
+          status: "submitted",
         };
       }
 
-      setSubmissions(prev => [...prev, newSubmission]);
+      setSubmissions((prev) => [...prev, newSubmission]);
       handleCloseSubmitModal();
       alert("Assignment submitted successfully!");
-
     } catch (error: any) {
       console.error("Error submitting assignment:", error);
-      
+
       if (error.response?.status === 422 && error.response?.data?.detail) {
         const apiErrors: { [key: string]: string } = {};
         error.response.data.detail.forEach((err: any) => {
@@ -711,11 +828,12 @@ const StudentDashboard: React.FC = () => {
         setFormErrors(apiErrors);
       } else if (error.response?.status === 409) {
         setFormErrors({
-          general: "You have already submitted this assignment. View Grades to check status.",
+          general:
+            "You have already submitted this assignment. View Grades to check status.",
         });
       } else {
-        setFormErrors({ 
-          general: "Failed to submit assignment. Please try again." 
+        setFormErrors({
+          general: "Failed to submit assignment. Please try again.",
         });
       }
     } finally {
@@ -782,7 +900,8 @@ const StudentDashboard: React.FC = () => {
     }
 
     if (!isCleanBefore) {
-      errors.is_clean_before = "Please indicate if the room was clean before use";
+      errors.is_clean_before =
+        "Please indicate if the room was clean before use";
     }
 
     if (!isCleanAfter) {
@@ -792,7 +911,8 @@ const StudentDashboard: React.FC = () => {
     if (!reportText.trim()) {
       errors.report_text = "Please provide a description of the report";
     } else if (reportText.trim().length < 10) {
-      errors.report_text = "Please provide a more detailed description (at least 10 characters)";
+      errors.report_text =
+        "Please provide a more detailed description (at least 10 characters)";
     }
 
     setReportFormErrors(errors);
@@ -1131,72 +1251,123 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                    {loadingStates.schedule ? (
-                      <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
-                            <div className="flex items-start space-x-3">
-                              <SkeletonLoader className="w-10 h-10 rounded-xl" />
-                              <div className="flex-1">
-                                <SkeletonLoader className="h-4 w-3/4 mb-2" />
-                                <SkeletonLoader className="h-3 w-1/2 mb-2" />
-                                <SkeletonLoader className="h-3 w-2/3" />
+                  <div className="relative flex-1">
+                    <div 
+                      className="absolute inset-0 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                      ref={scheduleScrollRef}
+                      onScroll={handleScheduleScroll}
+                    >
+                      {loadingStates.schedule ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40"
+                            >
+                              <div className="flex items-start space-x-3">
+                                <div className="w-10 h-10 bg-slate-400 rounded-xl animate-pulse"></div>
+                                <div className="flex-1">
+                                  <div className="h-4 bg-slate-400 rounded w-3/4 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-1/2 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-2/3 animate-pulse"></div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : schedule.length > 0 ? (
-                      schedule.map((item) => (
-                        <div
-                          key={item.id}
-                          className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className="w-10 h-10 bg-blue-500/60 rounded-xl flex items-center justify-center text-lg shadow-sm">
-                              <svg
-                                className="w-6 h-6 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                                />
-                              </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-white text-sm mb-1 truncate">
-                                {item.class_name}
-                              </h4>
-                              <p className="text-xs text-slate-300 mb-1">
-                                {formatTeacherName(item.teacher_full_name)} | {item.room_number}
-                              </p>
-                              <p className="text-xs text-slate-400 mb-2">
-                                {item.class_code}
-                              </p>
-                              <div className="flex items-center justify-between">
-                                <p className="text-sm font-medium text-white">
-                                  {formatTime(item.start_time)} - {formatTime(item.end_time)}
-                                </p>
-                                <span className={`px-2 py-1 text-xs rounded-full border ${getRoomStatusColor(item.status)}`}>
-                                  {item.status}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <svg className="w-12 h-12 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-slate-400">No schedule for today</p>
+                      ) : schedule.length > 0 ? (
+                        schedule.map((item) => (
+                          <div
+                            key={item.id}
+                            className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className="w-10 h-10 bg-blue-500/60 rounded-xl flex items-center justify-center text-lg shadow-sm">
+                                <svg
+                                  className="w-6 h-6 text-white"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-white text-sm mb-1 truncate">
+                                  {item.class_name}
+                                </h4>
+                                <p className="text-xs text-slate-300 mb-1">
+                                  {formatTeacherName(item.teacher_full_name)} |{" "}
+                                  {item.room_number}
+                                </p>
+                                <p className="text-xs text-slate-400 mb-2">
+                                  {item.class_code}
+                                </p>
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm font-medium text-white">
+                                    {formatTime(item.start_time)} -{" "}
+                                    {formatTime(item.end_time)}
+                                  </p>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full border ${getRoomStatusColor(
+                                      item.status
+                                    )}`}
+                                  >
+                                    {item.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <svg
+                            className="w-12 h-12 text-slate-500 mx-auto mb-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                          <p className="text-slate-400">
+                            No schedule for today
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Scroll Indicator for Schedule - Auto hides when scrolled */}
+                    {schedule.length > 3 && showScheduleScrollIndicator && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10 transition-opacity duration-300">
+                        <div className="flex items-center space-x-1 bg-slate-800/90 rounded-full px-3 py-1 border border-slate-600/60 backdrop-blur-sm">
+                          <svg
+                            className="w-3 h-3 text-blue-400 animate-bounce"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
+                          </svg>
+                          <span className="text-xs text-slate-300">
+                            Scroll for more
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1232,75 +1403,125 @@ const StudentDashboard: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                         <span className="text-xs text-orange-400 font-medium">
-                          {announcements.filter((a) => a.is_urgent).length} Urgent
+                          {announcements.filter((a) => a.is_urgent).length}{" "}
+                          Urgent
                         </span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                    {loadingStates.announcements ? (
-                      <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
-                            <div className="flex items-start space-x-3">
-                              <SkeletonLoader className="w-3 h-3 rounded-full mt-2" />
-                              <div className="flex-1">
-                                <SkeletonLoader className="h-4 w-3/4 mb-2" />
-                                <SkeletonLoader className="h-3 w-full mb-2" />
-                                <SkeletonLoader className="h-3 w-2/3 mb-2" />
-                                <SkeletonLoader className="h-3 w-1/3" />
+                  <div className="relative flex-1">
+                    <div 
+                      className="absolute inset-0 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                      ref={announcementsScrollRef}
+                      onScroll={handleAnnouncementsScroll}
+                    >
+                      {loadingStates.announcements ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40"
+                            >
+                              <div className="flex items-start space-x-3">
+                                <div className="w-3 h-3 bg-slate-400 rounded-full mt-2 animate-pulse"></div>
+                                <div className="flex-1">
+                                  <div className="h-4 bg-slate-400 rounded w-3/4 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-full mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-2/3 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-1/3 animate-pulse"></div>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : announcements.length > 0 ? (
-                      announcements.map((announcement) => (
-                        <div
-                          key={announcement.id}
-                          className={`bg-slate-600/60 rounded-xl p-4 border transition-all duration-200 hover:bg-slate-600/80 shadow-sm cursor-pointer ${
-                            announcement.is_urgent
-                              ? "border-orange-400/50 ring-1 ring-orange-400/20"
-                              : "border-slate-500/40"
-                          }`}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className={`w-3 h-3 rounded-full mt-2 ${announcement.is_urgent ? "bg-orange-400" : "bg-blue-400"}`}></div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-semibold text-white text-sm leading-tight">
-                                  {announcement.title}
-                                </h4>
-                                {announcement.is_urgent && (
-                                  <span className="px-2 py-1 text-xs rounded-full border ml-2 flex-shrink-0 bg-orange-500/20 border-orange-500/30 text-orange-400">
-                                    🚨 URGENT
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-slate-200 mb-3 leading-relaxed">
-                                {announcement.content}
-                              </p>
-                              <p className="text-xs text-slate-400">
-                                {formatDate(announcement.date_posted)}
-                              </p>
-                            </div>
-                          </div>
+                          ))}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <svg className="w-12 h-12 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                        </svg>
-                        <p className="text-slate-400">No announcements</p>
+                      ) : announcements.length > 0 ? (
+                        announcements.map((announcement) => (
+                          <div
+                            key={announcement.id}
+                            className={`bg-slate-600/60 rounded-xl p-4 border transition-all duration-200 hover:bg-slate-600/80 shadow-sm cursor-pointer ${
+                              announcement.is_urgent
+                                ? "border-orange-400/50 ring-1 ring-orange-400/20"
+                                : "border-slate-500/40"
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div
+                                className={`w-3 h-3 rounded-full mt-2 ${
+                                  announcement.is_urgent
+                                    ? "bg-orange-400"
+                                    : "bg-blue-400"
+                                }`}
+                              ></div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between mb-2">
+                                  <h4 className="font-semibold text-white text-sm leading-tight">
+                                    {announcement.title}
+                                  </h4>
+                                  {announcement.is_urgent && (
+                                    <span className="px-2 py-1 text-xs rounded-full border ml-2 flex-shrink-0 bg-orange-500/20 border-orange-500/30 text-orange-400">
+                                      🚨 URGENT
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-slate-200 mb-3 leading-relaxed">
+                                  {announcement.content}
+                                </p>
+                                <p className="text-xs text-slate-400">
+                                  {formatDate(announcement.date_posted)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8">
+                          <svg
+                            className="w-12 h-12 text-slate-500 mx-auto mb-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"
+                            />
+                          </svg>
+                          <p className="text-slate-400">No announcements</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Scroll Indicator for Announcements - Auto hides when scrolled */}
+                    {announcements.length > 3 && showAnnouncementsScrollIndicator && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10 transition-opacity duration-300">
+                        <div className="flex items-center space-x-1 bg-slate-800/90 rounded-full px-3 py-1 border border-slate-600/60 backdrop-blur-sm">
+                          <svg
+                            className="w-3 h-3 text-orange-400 animate-bounce"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
+                          </svg>
+                          <span className="text-xs text-slate-300">
+                            Scroll for more
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Assignments Section - FIXED: SCROLLABLE WITHOUT VIEW ALL BUTTON */}
+              {/* Assignments Section - WITH SCROLLING INDICATOR */}
               <div className="lg:col-span-2 xl:col-span-1">
                 <div className="bg-slate-700/60 rounded-2xl p-6 border border-slate-600/40 shadow-lg h-[400px] flex flex-col">
                   <div className="flex items-center justify-between mb-6">
@@ -1357,95 +1578,149 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Scrollable Assignments Area - NO VIEW ALL BUTTON */}
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                    {loadingStates.assignments ? (
-                      <div className="space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <SkeletonLoader className="h-4 w-3/4 mb-2" />
-                                <SkeletonLoader className="h-3 w-1/2 mb-2" />
-                                <SkeletonLoader className="h-3 w-full mb-2" />
-                                <SkeletonLoader className="h-3 w-2/3" />
-                              </div>
-                              <SkeletonLoader className="w-16 h-6 rounded-full ml-2" />
-                            </div>
-                            <SkeletonLoader className="h-10 w-full rounded-xl" />
-                          </div>
-                        ))}
-                      </div>
-                    ) : assignments.length > 0 ? (
-                      assignments.map((assignment) => {
-                        const isSubmitted = isAssignmentSubmitted(assignment.id);
-                        
-                        return (
-                          <div
-                            key={assignment.id}
-                            className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
-                          >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1 min-w-0">
-                                {/* CLASS NAME DISPLAY - FIXED */}
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className="text-xs font-medium text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full border border-blue-500/30">
-                                    {assignment.class_name}
-                                  </span>
-                                </div>
-                                
-                                {/* Assignment name - EXACT NAMES FROM SCREENSHOT */}
-                                <h4 className="font-semibold text-white text-sm mb-2">
-                                  {assignment.name}
-                                </h4>
-                                
-                                {/* Assignment description */}
-                                <p className="text-sm text-slate-200 leading-relaxed">
-                                  {assignment.description || "No description provided"}
-                                </p>
-                              </div>
-                              <span className={`px-2 py-1 text-xs rounded-full border ml-2 flex-shrink-0 ${
-                                isSubmitted 
-                                  ? "bg-green-500/20 text-green-400 border-green-500/30"
-                                  : "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                              }`}>
-                                {isSubmitted ? 'Submitted' : 'Active'}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs mb-3">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-slate-300">
-                                  Created: {formatDate(assignment.created_at)}
-                                </span>
-                                {isSubmitted && (
-                                  <span className="text-green-400">
-                                    ✓ Submitted
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => handleSubmitAssignment(assignment)}
-                              disabled={isSubmitted}
-                              className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer ${
-                                isSubmitted
-                                  ? "bg-gray-500/50 text-gray-300 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                              }`}
+                  {/* Scrollable Assignments Area */}
+                  <div className="relative flex-1">
+                    <div 
+                      className="absolute inset-0 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                      ref={assignmentsScrollRef}
+                      onScroll={handleAssignmentsScroll}
+                    >
+                      {loadingStates.assignments ? (
+                        <div className="space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40"
                             >
-                              {isSubmitted ? 'Already Submitted' : 'Submit Assignment'}
-                            </button>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-8">
-                        <svg className="w-12 h-12 text-slate-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p className="text-slate-400">No assignments available</p>
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                  <div className="h-4 bg-slate-400 rounded w-3/4 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-1/2 mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-full mb-2 animate-pulse"></div>
+                                  <div className="h-3 bg-slate-400 rounded w-2/3 animate-pulse"></div>
+                                </div>
+                                <div className="w-16 h-6 bg-slate-400 rounded-full ml-2 animate-pulse"></div>
+                              </div>
+                              <div className="h-10 bg-slate-400 rounded-xl w-full animate-pulse"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : assignments.length > 0 ? (
+                        assignments.map((assignment) => {
+                          const isSubmitted = isAssignmentSubmitted(
+                            assignment.id
+                          );
+
+                          return (
+                            <div
+                              key={assignment.id}
+                              className="bg-slate-600/60 rounded-xl p-4 border border-slate-500/40 hover:bg-slate-600/80 transition-all duration-200 shadow-sm cursor-pointer"
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1 min-w-0">
+                                  {/* CLASS NAME DISPLAY - FIXED */}
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-xs font-medium text-blue-400 bg-blue-500/20 px-2 py-1 rounded-full border border-blue-500/30">
+                                      {assignment.class_name}
+                                    </span>
+                                  </div>
+
+                                  {/* Assignment name - EXACT NAMES FROM SCREENSHOT */}
+                                  <h4 className="font-semibold text-white text-sm mb-2">
+                                    {assignment.name}
+                                  </h4>
+
+                                  {/* Assignment description */}
+                                  <p className="text-sm text-slate-200 leading-relaxed">
+                                    {assignment.description ||
+                                      "No description provided"}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`px-2 py-1 text-xs rounded-full border ml-2 flex-shrink-0 ${
+                                    isSubmitted
+                                      ? "bg-green-500/20 text-green-400 border-green-500/30"
+                                      : "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                                  }`}
+                                >
+                                  {isSubmitted ? "Submitted" : "Active"}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs mb-3">
+                                <div className="flex items-center space-x-3">
+                                  <span className="text-slate-300">
+                                    Created: {formatDate(assignment.created_at)}
+                                  </span>
+                                  {isSubmitted && (
+                                    <span className="text-green-400">
+                                      ✓ Submitted
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() =>
+                                  handleSubmitAssignment(assignment)
+                                }
+                                disabled={isSubmitted}
+                                className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 shadow-md cursor-pointer ${
+                                  isSubmitted
+                                    ? "bg-gray-500/50 text-gray-300 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+                                }`}
+                              >
+                                {isSubmitted
+                                  ? "Already Submitted"
+                                  : "Submit Assignment"}
+                              </button>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center py-8">
+                          <svg
+                            className="w-12 h-12 text-slate-500 mx-auto mb-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                          <p className="text-slate-400">
+                            No assignments available
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Scroll Indicator for Assignments - Auto hides when scrolled */}
+                    {assignments.length > 2 && showAssignmentsScrollIndicator && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-10 transition-opacity duration-300">
+                        <div className="flex items-center space-x-1 bg-slate-800/90 rounded-full px-3 py-1 border border-slate-600/60 backdrop-blur-sm">
+                          <svg
+                            className="w-3 h-3 text-green-400 animate-bounce"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
+                          </svg>
+                          <span className="text-xs text-slate-300">
+                            Scroll for more
+                          </span>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1476,7 +1751,7 @@ const StudentDashboard: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Blue - Submit Assignment */}
-                <button 
+                <button
                   onClick={() => navigate("/student/assignments")}
                   className="flex items-center space-x-4 p-4 bg-slate-600/60 hover:bg-slate-600/80 rounded-xl border border-slate-500/40 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                 >
@@ -1537,7 +1812,7 @@ const StudentDashboard: React.FC = () => {
                 </button>
 
                 {/* Green - View Grades */}
-                <button 
+                <button
                   onClick={() => navigate("/student/grades")}
                   className="flex items-center space-x-4 p-4 bg-slate-600/60 hover:bg-slate-600/80 rounded-xl border border-slate-500/40 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                 >
@@ -1568,7 +1843,7 @@ const StudentDashboard: React.FC = () => {
                 </button>
 
                 {/* Violet - View Schedule */}
-                <button 
+                <button
                   onClick={() => navigate("/student/schedule")}
                   className="flex items-center space-x-4 p-4 bg-slate-600/60 hover:bg-slate-600/80 rounded-xl border border-slate-500/40 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer"
                 >
@@ -1642,7 +1917,8 @@ const StudentDashboard: React.FC = () => {
                   {selectedAssignment.name}
                 </h4>
                 <p className="text-xs text-slate-300 mb-1">
-                  {selectedAssignment.class_name} ({selectedAssignment.class_code})
+                  {selectedAssignment.class_name} (
+                  {selectedAssignment.class_code})
                 </p>
                 <p className="text-sm text-slate-200">
                   {selectedAssignment.description || "No description provided"}
@@ -2030,7 +2306,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div> 
+        </div>
       )}
     </div>
   );
